@@ -28,8 +28,7 @@ if __name__ == "__main__":
     
     for wsi_file in glob.glob(WSI_DIR+"/*"):
 
-        #ext_list = ['.ndpi', '.tiff', '.tif']
-        ext_list = ['.tif']
+        ext_list = ['.ndpi', '.tiff', '.tif']
         wsi_ext = os.path.splitext(wsi_file)[1]
         if wsi_ext in ext_list:
 
