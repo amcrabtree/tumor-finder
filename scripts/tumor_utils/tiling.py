@@ -8,11 +8,8 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import openslide 
 import glob
-import re
 import cv2
-import random
 import matplotlib.pyplot as plt
-from math import ceil
 
     
 class AnnWSI (object):
