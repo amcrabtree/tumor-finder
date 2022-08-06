@@ -255,59 +255,6 @@ def GenerateTiles(ann_obj:AnnWSI, outdir:str,
 
 
 
-
-def SplitTileDirs (tile_dir:str):
-    """ Splits tile images into Training and Validation directories.
-    """
-    # make sets of WSI names & unique labels
-    wsi_set = set() # set of WSI filenames
-    label_set = set() # set of labels
-    for f in glob.glob(tile_dir+"/*.*"):
-        match = re.search('wsi_(\w+)_tile_.+_label_(\w+)\..+', os.path.basename(f))
-        f_wsi, f_label = match.group(1), match.group(2)
-        if f_wsi not in wsi_set: wsi_set.add(f_wsi)
-        if f_label not in label_set: label_set.add(f_label)
-
-    # split WSIs into train/val/test
-    def SplitStringList(my_list:list[str], ratio:float=0.1) -> list:
-        """ Divides a string list into 3 lists of shuffled elements. 
-        Ex: ratio of 0.1 means 10% test, 10% val, 80% train 
-        """
-        if ratio > len(my_list)//3:
-            print("Ratio must be less than 1/3 of the length of list. Try again.")
-            exit(1)
-        random.shuffle(my_list) # shuffle list elements
-        print("length of my_list:", len(my_list))
-        n_items = ceil(len(my_list)*ratio)
-        test_list = my_list[:n_items]
-        remaining_list = my_list[n_items:]
-        val_list = remaining_list[:n_items]
-        train_list = remaining_list[n_items:]
-        print(f"n_items = {n_items}")
-        print(f"test_list = {test_list}")
-        print(f"val_list = {val_list}")
-        print(f"train_list = {train_list}")
-        return [train_list, val_list, test_list]
-    
-    train_wsis, val_wsis, test_wsis = SplitStringList(list(wsi_set))
-    wsi_dict = {'train':train_wsis, 'val':val_wsis, 'test':test_wsis}
-    print(wsi_dict)
-
-    # move tile files to destination directories
-    for f in glob.glob(tile_dir+"/*.*"):
-        match = re.search('wsi_(\w+)_tile_.+_label_(\w+)\..+', os.path.basename(f))
-        wsi, label = match.group(1), match.group(2)
-        split_set = "".join([k for k, v in wsi_dict.items() if wsi in v])
-        dest_dir = os.path.join(tile_dir, split_set, label)
-        if not os.path.exists(dest_dir): # make destination dir if needed
-            os.makedirs(dest_dir)
-        output_filename = os.path.join(dest_dir, os.path.basename(f))
-        os.replace(f, output_filename)
-
-
-
-
-
 def SaveOverlay(ann_obj:AnnWSI, mode:str, value, outfile:str=""):
     """ 
     Create image of WSI overlaid with annotations. 
