@@ -261,17 +261,16 @@ def SplitStringList(my_list:list[str], ratio:float=0.2) -> list:
     Divides a string list into 2 lists of shuffled elements. 
     Ex: ratio of 0.2 means 20% val, 80% train 
     """
-
     # shuffle list elements so the order is random
     random.shuffle(my_list) 
 
     # isolate list for validation (20%) from training (80%)
     n_el_in_ratio = int(len(my_list) * ratio)
-    smaller_list = my_list[:n_el_in_ratio]
-    larger_list = my_list[n_el_in_ratio:]
+    ratio_list = my_list[:n_el_in_ratio]
+    leftover_list = my_list[n_el_in_ratio:]
 
     # return list of file lists
-    return [larger_list, smaller_list]
+    return [leftover_list, ratio_list]
 
 
 
@@ -292,7 +291,7 @@ def SplitTileDirs (tile_dir:str):
     file_dict={} # key=label, value=tile filenames containing label
     wsi_list=[] # list of WSI filenames
     for f in glob.glob(tile_dir+"/*.*"):
-        match = re.search('wsi_(\w+)_node_.+_label_(\w+)\..+', os.path.basename(f))
+        match = re.search('wsi_(\w+)_tile_.+_label_(\w+)\..+', os.path.basename(f))
         f_wsi, f_label = match.group(1), match.group(2)
         if f_wsi not in wsi_list: wsi_list.append(f_wsi)
         if f_label in file_dict:
@@ -302,6 +301,8 @@ def SplitTileDirs (tile_dir:str):
 
     # divide the WSIs between training and testing/val
     train_wsi_list, test_wsi_list = SplitStringList(wsi_list)
+    print(f"training WSIs: {train_wsi_list} \ntesting WSIs: {test_wsi_list}")
+
     # remove tiles from dict from wsis in test_wsi_list
     def remove_tiles_by_wsi(tile_dict, wsi_list):
         filtered_dict={}
@@ -319,7 +320,7 @@ def SplitTileDirs (tile_dir:str):
         # list training & validation tiles for a single label
         train_tile_list, val_tile_list = SplitStringList(train_file_dict[f_label], ratio=0.2)
         test_tile_list = test_file_dict[f_label]
-        set_tile_list = [train_tile_list, val_tile_list,test_tile_list]
+        set_tile_list = [train_tile_list, val_tile_list, test_tile_list]
 
         # create dir for label in set (train,val,test) directories
         for set in sets_list:
