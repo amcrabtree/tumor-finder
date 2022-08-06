@@ -3,4 +3,4 @@ models/
 **/__pycache__
 **/*.pt
 **/.DS_Store
-
+config/config.json
