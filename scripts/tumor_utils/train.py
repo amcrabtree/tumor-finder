@@ -71,9 +71,7 @@ class Trainer():
             'epoch_loss':epoch_loss,
             'epoch_acc':epoch_acc
             })
-        print('train_loss.item', loss.item())
-        print('train epoch_loss', epoch_loss)
-        print('train epoch_acc', epoch_acc)
+        print(f'train ItemLoss: {loss.item():.4f} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
         #self.writer.add_scalar('train_loss', loss.item(),  self.current_epoch)
         return loss.item()
 
@@ -100,9 +98,7 @@ class Trainer():
             'epoch_loss':epoch_loss,
             'epoch_acc':epoch_acc
             })
-        print('val_loss, avg', avg_loss)
-        print('val epoch_loss', epoch_loss)
-        print('val epoch_acc', epoch_acc)
+        print(f'val AvgLoss: {avg_loss:.4f} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
         #self.writer.add_scalar('val_loss', avg_loss,  self.current_epoch)
         return avg_loss
 
