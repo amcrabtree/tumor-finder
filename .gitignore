@@ -5,4 +5,4 @@ models/
 **/.DS_Store
 config/config.json
 scripts/tumor.srun
-
+scripts/tiling*
