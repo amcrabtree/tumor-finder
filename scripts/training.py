@@ -69,10 +69,7 @@ if __name__=='__main__':
         batch_size=config['batch_size'], 
         shuffle=True, 
         drop_last=True)
-    # make sure dataset/dataloader are working correctly
-    #TryLoader(train_loader)
-    print(f"length of train loader: {len(train_loader)}")
-    print(f"length of val loader: {len(val_loader)}")
+    #TryLoader(train_loader) # ensure dataset/dataloader are working correctly
 
     # 3. Load Model
     model = vgg16(weights=VGG16_Weights.DEFAULT)
@@ -82,8 +79,6 @@ if __name__=='__main__':
         num_ftrs, len(val_set.label_dict), device=device) 
     model.to(device)
     print(f"\n\tMODEL:\n{'.' * 40} \n{model} \n{'.' * 40}\n")
-    #model_info_file = os.path.join(project_dir, "model_info.txt")
-    #model.WriteInfo(model_info_file)
 
     # 4. Train model
     trainer = Trainer(model, config)
@@ -93,13 +88,13 @@ if __name__=='__main__':
     model_scripted = torch.jit.script(model) # Export to TorchScript
     model_scripted.save(config['model_file']) # Save
 
-    # 6. append additional info to config
-    config['n_train_tiles'] = len(training_set)//config['batch_size']
-    config['n_val_tiles'] = len(val_set)//config['batch_size']
-    #config.update(model.config) # append model config info to config dict
-
     # 6. Save the training stats (loss and accuracy) to CSV
     stats_df = pd.DataFrame.from_dict(trainer.stats_list)
     stats_file = os.path.join(project_dir, "stats.csv")
     stats_df.to_csv(stats_file, index=False)
     print(f'\n\tSaved stats file to: \n\t\t{stats_file}\n')
+
+    # 7. append additional info to config
+    #config['n_train_tiles'] = len(training_set)
+    #config['n_val_tiles'] = len(val_set)
+    #config.update(model.config) # append model config info to config dict

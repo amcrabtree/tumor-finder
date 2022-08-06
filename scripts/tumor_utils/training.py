@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -108,6 +109,7 @@ class Trainer():
     def train(self, train_loader, val_loader):
         best_val_loss = float('inf')
         for e in range(self.n_epochs):
+            since = time.time() # track time/epoch
             print(f'\nEpoch {e}/{self.n_epochs - 1}')
             print('-' * 10)
             # train step
@@ -125,4 +127,7 @@ class Trainer():
                 torch.save(self.model, model_path)
                 best_val_loss = val_loss
             self.current_epoch+=1
+            time_elapsed = time.time() - since
+            print(f'Epoch complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+
         return best_val_loss
