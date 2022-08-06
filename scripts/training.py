@@ -8,12 +8,11 @@ This script trains a machine learning model for tumor detection.
 
 import os
 import sys
-import numpy as np
 import pandas as pd
 import json
 
 from tumor_utils.data import TiledDataset,TryLoader # custom dataset class & test fxn
-from tumor_utils.training import Trainer # custom trainer class
+from tumor_utils.train import Trainer # custom trainer class
 
 from torch.utils.data import DataLoader
 import torch
@@ -74,9 +73,8 @@ if __name__=='__main__':
     # 3. Load Model
     model = vgg16(weights=VGG16_Weights.DEFAULT)
     # change tensor dimensions out of model
-    num_ftrs = model.classifier[6].in_features # input size
-    model.classifier[6] = nn.Linear( # set new output size
-        num_ftrs, len(val_set.label_dict), device=device) 
+    num_ftrs = model.classifier[6].in_features # last layer's input size
+    model.classifier[6] = nn.Linear(num_ftrs, len(val_set.label_dict), device=device) 
     model.to(device)
     print(f"\n\tMODEL:\n{'.' * 40} \n{model} \n{'.' * 40}\n")
 
