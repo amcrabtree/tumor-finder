@@ -203,27 +203,7 @@ class Tile (AnnWSI):
         if is_blank: self.label = "blank"
         return is_blank
 
-    def OldIsBlank(self) -> bool:
-        """ Returns True if tile is blank. """
-
-        is_blank=False # assume tile is not blank (default)
-
-        # if tiles are all black (in the case of PCam WSI blank space):
-        grayImage = cv2.cvtColor(self.np_img, cv2.COLOR_BGR2GRAY)
-        (thresh, blackAndWhiteImage) = cv2.threshold(grayImage, 170,255, cv2.THRESH_BINARY)
-        ratio_black = np.count_nonzero(blackAndWhiteImage) / blackAndWhiteImage.size
-        if ratio_black > 0.3: is_blank=True
-
-        # if tiles are mostly white (in the case of normal WSI blank space)
-        img_cv = cv2.cvtColor(self.np_img, cv2.COLOR_RGB2BGR)
-        blur = cv2.GaussianBlur(img_cv,(5,5),0)
-        (thresh, threshImageInv) = cv2.threshold(blur, 170,255, cv2.THRESH_BINARY_INV)
-        ratio_whitish = np.count_nonzero(threshImageInv) / threshImageInv.size
-        if ratio_whitish > 0.8: is_blank=True 
-
-        if is_blank: self.label = "blank"
-        return is_blank
-
+    
 
 
 
@@ -265,7 +245,7 @@ def GenerateTiles(ann_obj:AnnWSI, outdir:str,
                 outfile = os.path.join(outdir, filename)
                 #np.save(outfile, current_tile.np_img)
                 im = Image.fromarray(current_tile.np_img)
-                im.save(outfile+".jpg")
+                im.save(outfile+".png")
 
                 n += 1 # advance tile counter
 
@@ -276,26 +256,22 @@ def GenerateTiles(ann_obj:AnnWSI, outdir:str,
 
 
 
-def SplitStringList(my_list:list[str], ratio:float=0.1) -> list:
+def SplitStringList(my_list:list[str], ratio:float=0.2) -> list:
     """ 
-    Divides a string list into 3 lists of shuffled elements. 
-    Ex: ratio of 0.1 means 10% test, 10% val, 80% train 
+    Divides a string list into 2 lists of shuffled elements. 
+    Ex: ratio of 0.2 means 20% val, 80% train 
     """
 
     # shuffle list elements so the order is random
     random.shuffle(my_list) 
 
-    # isolate list for testing (10%)
+    # isolate list for validation (20%) from training (80%)
     n_el_in_ratio = int(len(my_list) * ratio)
-    test_list = my_list[:n_el_in_ratio]
-
-    # divide remaining elements into training (80%) and validation (10%)
-    remaining_list = my_list[n_el_in_ratio:]
-    val_list = remaining_list[:n_el_in_ratio]
-    train_list = remaining_list[n_el_in_ratio:]
+    smaller_list = my_list[:n_el_in_ratio]
+    larger_list = my_list[n_el_in_ratio:]
 
     # return list of file lists
-    return [train_list, val_list, test_list]
+    return [larger_list, smaller_list]
 
 
 
@@ -303,7 +279,7 @@ def SplitStringList(my_list:list[str], ratio:float=0.1) -> list:
 
 
 def SplitTileDirs (tile_dir:str):
-    """ Splits tile images into Training, Validation, and Testing directories. """
+    """ Splits tile images into Training and Validation directories. """
     
     # setup directories for train,val,test sets
     sets_list = ['train','val','test']
@@ -312,19 +288,35 @@ def SplitTileDirs (tile_dir:str):
         if not os.path.exists(dir):
             os.mkdir(dir)
 
-    # make dict of filesnames for each label
-    file_dict={}
+    # make dict of filesnames for each label, separated btwn training vs. testing/val
+    file_dict={} # key=label, value=tile filenames containing label
+    wsi_list=[] # list of WSI filenames
     for f in glob.glob(tile_dir+"/*.*"):
-        f_label = re.search('.+_label_(\w+)\..+', os.path.basename(f)).group(1)
+        f_label = re.search('wsi_(\w+)_node_.+_label_(\w+)\..+', os.path.basename(f)).group(1)
         if f_label in file_dict:
             file_dict[f_label].append(f)
         else:
             file_dict[f_label] = [f]
-    
+    # divide the WSIs between training and testing/val
+    train_wsi_list, test_wsi_list = SplitStringList(wsi_list)
+    # remove tiles from dict from wsis in test_wsi_list
+    def remove_tiles_by_wsi(tile_dict, wsi_list):
+        filtered_dict={}
+        for label, tile_list in tile_dict.items(): # loop through each key in dict
+            for w in wsi_list: 
+                filtered_dict[label] = list(filter(lambda x: w not in x, tile_list))
+        return filtered_dict
+    train_file_dict=remove_tiles_by_wsi(file_dict, test_wsi_list)
+    test_file_dict=remove_tiles_by_wsi(file_dict, train_wsi_list)
+
     # reorganize files, ensuring split follows distribution of label categories
-    for f_label in file_dict:
-        print(f"\t\t{f_label} tiles: {len(file_dict[f_label])}")
-        file_split_list = SplitStringList(file_dict[f_label], ratio=0.2)
+    for f_label in train_file_dict: 
+        print(f"\t\t{f_label} training/val tiles: {len(train_file_dict[f_label])}")
+        print(f"\t\t{f_label} testing tiles: {len(test_file_dict[f_label])}")
+        # list training & validation tiles for a single label
+        train_tile_list, val_tile_list = SplitStringList(train_file_dict[f_label], ratio=0.2)
+        test_tile_list = test_file_dict[f_label]
+        set_tile_list = [train_tile_list, val_tile_list,test_tile_list]
 
         # create dir for label in set (train,val,test) directories
         for set in sets_list:
@@ -332,11 +324,10 @@ def SplitTileDirs (tile_dir:str):
             if not os.path.exists(dir):
                 os.mkdir(dir)
 
-            # move each file belonging to that set's dir ('train','val', or 'test')
-            for f in file_split_list[sets_list.index(set)]:
+            # move each file belonging to that set's dir ('train', 'val', or 'test')
+            for f in set_tile_list[sets_list.index(set)]:
                 output_filename = os.path.join(dir, os.path.basename(f))
                 os.replace(f, output_filename)
-
 
 
 
