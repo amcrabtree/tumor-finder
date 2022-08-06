@@ -43,3 +43,15 @@ python3 ./scripts/training.py ./config/template_config.json
 To test the model, you're on your own. I'm working on this script at the mo'
 
 Good luck!   :-D
+
+### FAQ
+
+#### *What to do if tiling stops prematurely?*
+
+If your tiling gets stopped and you're okay with just using the tiles generated, run the following to sort files properly:
+
+```
+python ./scripts/tumor_utils/mv_tiles.py ./data/tiles
+```
+
+Proceed to train your model. 
