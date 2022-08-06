@@ -12,7 +12,7 @@ import pandas as pd
 import json
 
 from tumor_utils.data import TiledDataset,TryLoader # custom dataset class & test fxn
-from tumor_utils.train import Trainer # custom trainer class
+from tumor_utils.train import Trainer,salute # custom trainer class and print msg
 
 from torch.utils.data import DataLoader
 import torch
@@ -79,6 +79,7 @@ if __name__=='__main__':
     print(f"\n\tMODEL:\n{'.' * 40} \n{model} \n{'.' * 40}\n")
 
     # 4. Train model
+    salute()
     trainer = Trainer(model, config)
     trainer.train(train_loader, val_loader)
 
