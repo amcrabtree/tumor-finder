@@ -6,3 +6,4 @@ models/
 config/config.json
 scripts/tumor.srun
 **/tiling*
+**/training*
