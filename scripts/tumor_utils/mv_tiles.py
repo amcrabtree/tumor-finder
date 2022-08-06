@@ -56,12 +56,11 @@ def RemoveClassDir (tile_dir:str, label_dir:str):
     """ Removes unwanted folder, label_dir, from all directories in tile_dir. """
     for split_dir in glob.glob(tile_dir+"/*"):
         unwanted_path = os.path.join(split_dir, label_dir)
-        print("unwanted path:", unwanted_path)
         shutil.rmtree(unwanted_path, ignore_errors=True)
 
 
 if __name__ == "__main__":
 
     TILE_DIR=sys.argv[1]
-    #SplitTileDirs(TILE_DIR, ratio=0.2) # move tiles to subdirs
+    SplitTileDirs(TILE_DIR, ratio=0.2) # move tiles to subdirs
     RemoveClassDir (TILE_DIR, "margin") # remove any margin folders
