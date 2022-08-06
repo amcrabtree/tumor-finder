@@ -1,6 +1,6 @@
-data/*
-models/*
-*/__pycache__
-*/*.pt
-.DS_Store
+data/
+models/
+**/__pycache__
+**/*.pt
+**/.DS_Store
 
