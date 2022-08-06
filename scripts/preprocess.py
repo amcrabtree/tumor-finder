@@ -46,9 +46,7 @@ if __name__ == "__main__":
             tumor_utils.tiling.GenerateTiles (
                 ann_wsi, outdir=TILE_DIR,
                 tile_size=256,
-                level=0,
-                x_range=[73000, 79000],
-                y_range=[61000, 71500])
+                level=0)
 
             # subdivide tiles into training, validation, and testing folders
             tumor_utils.tiling.SplitTileDirs (TILE_DIR)
