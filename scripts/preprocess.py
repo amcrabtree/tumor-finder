@@ -5,7 +5,7 @@ import sys
 import glob
 from tumor_utils.tiling import AnnWSI
 import tumor_utils.tiling
-import shutil
+import tumor_utils.mv_tiles
 import json
 
 """
@@ -48,11 +48,7 @@ if __name__ == "__main__":
                 level=0)
 
     # subdivide tiles into training, validation, and testing folders
-    tumor_utils.tiling.SplitTileDirs (TILE_DIR)
-
-    # remove margin tile directories
-    for set in ['train','val','test']:
-        margin_dir = os.path.join(TILE_DIR, set, 'margin')
-        shutil.rmtree(margin_dir, ignore_errors=True)
+    tumor_utils.mv_tiles.SplitTileDirs (TILE_DIR, ratio=0.2)
+    tumor_utils.mv_tiles.RemoveClassDir(TILE_DIR, "margin") # remove margin tile folders
 
     print(f"\n\nSaved all resultant tiles within:  \n\t{os.path.abspath(TILE_DIR)}\n")
