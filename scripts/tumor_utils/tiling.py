@@ -256,83 +256,53 @@ def GenerateTiles(ann_obj:AnnWSI, outdir:str,
 
 
 
-def SplitStringList(my_list:list[str], ratio:float=0.2) -> list:
-    """ 
-    Divides a string list into 2 lists of shuffled elements. 
-    Ex: ratio of 0.2 means 20% val, 80% train 
-    """
-    # shuffle list elements so the order is random
-    random.shuffle(my_list) 
-
-    # isolate list for validation (20%) from training (80%)
-    n_el_in_ratio = int(len(my_list) * ratio)
-    ratio_list = my_list[:n_el_in_ratio]
-    leftover_list = my_list[n_el_in_ratio:]
-
-    # return list of file lists
-    return [leftover_list, ratio_list]
-
-
-
-
-
-
 def SplitTileDirs (tile_dir:str):
-    """ Splits tile images into Training and Validation directories. """
-    
-    # setup directories for train,val,test sets
-    sets_list = ['train','val','test']
-    for set in sets_list:
-        dir = os.path.join(tile_dir, set)
-        if not os.path.exists(dir):
-            os.mkdir(dir)
-
-    # make dict of filesnames for each label, separated btwn training vs. testing/val
-    file_dict={} # key=label, value=tile filenames containing label
-    wsi_list=[] # list of WSI filenames
+    """ Splits tile images into Training and Validation directories.
+    """
+    # make sets of WSI names & unique labels
+    wsi_set = set() # set of WSI filenames
+    label_set = set() # set of labels
     for f in glob.glob(tile_dir+"/*.*"):
         match = re.search('wsi_(\w+)_tile_.+_label_(\w+)\..+', os.path.basename(f))
         f_wsi, f_label = match.group(1), match.group(2)
-        if f_wsi not in wsi_list: wsi_list.append(f_wsi)
-        if f_label in file_dict:
-            file_dict[f_label].append(f)
-        else:
-            file_dict[f_label] = [f]
+        if f_wsi not in wsi_set: wsi_set.add(f_wsi)
+        if f_label not in label_set: label_set.add(f_label)
 
-    # divide the WSIs between training and testing/val
-    train_wsi_list, test_wsi_list = SplitStringList(wsi_list)
-    print(f"training WSIs: {train_wsi_list} \ntesting WSIs: {test_wsi_list}")
+    # split WSIs into train/val/test
+    def SplitStringList(my_list:list[str], ratio:float=0.1) -> list:
+        """ Divides a string list into 3 lists of shuffled elements. 
+        Ex: ratio of 0.1 means 10% test, 10% val, 80% train 
+        """
+        if ratio > len(my_list)//3:
+            print("Ratio must be less than 1/3 of the length of list. Try again.")
+            exit(1)
+        random.shuffle(my_list) # shuffle list elements
+        print("length of my_list:", len(my_list))
+        n_items = ceil(len(my_list)*ratio)
+        test_list = my_list[:n_items]
+        remaining_list = my_list[n_items:]
+        val_list = remaining_list[:n_items]
+        train_list = remaining_list[n_items:]
+        print(f"n_items = {n_items}")
+        print(f"test_list = {test_list}")
+        print(f"val_list = {val_list}")
+        print(f"train_list = {train_list}")
+        return [train_list, val_list, test_list]
+    
+    train_wsis, val_wsis, test_wsis = SplitStringList(list(wsi_set))
+    wsi_dict = {'train':train_wsis, 'val':val_wsis, 'test':test_wsis}
+    print(wsi_dict)
 
-    # remove tiles from dict from wsis in test_wsi_list
-    def remove_tiles_by_wsi(tile_dict, wsi_list):
-        filtered_dict={}
-        for label, tile_list in tile_dict.items(): # loop through each key in dict
-            for w in wsi_list: 
-                filtered_dict[label] = list(filter(lambda x: w not in x, tile_list))
-        return filtered_dict
-    train_file_dict=remove_tiles_by_wsi(file_dict, test_wsi_list)
-    test_file_dict=remove_tiles_by_wsi(file_dict, train_wsi_list)
-
-    # reorganize files, ensuring split follows distribution of label categories
-    for f_label in train_file_dict: 
-        print(f"\t\t{f_label} training/val tiles: {len(train_file_dict[f_label])}")
-        print(f"\t\t{f_label} testing tiles: {len(test_file_dict[f_label])}")
-        # list training & validation tiles for a single label
-        train_tile_list, val_tile_list = SplitStringList(train_file_dict[f_label], ratio=0.2)
-        test_tile_list = test_file_dict[f_label]
-        set_tile_list = [train_tile_list, val_tile_list, test_tile_list]
-
-        # create dir for label in set (train,val,test) directories
-        for set in sets_list:
-            dir = os.path.join(tile_dir, set, f_label)
-            if not os.path.exists(dir):
-                os.mkdir(dir)
-
-            # move each file belonging to that set's dir ('train', 'val', or 'test')
-            for f in set_tile_list[sets_list.index(set)]:
-                output_filename = os.path.join(dir, os.path.basename(f))
-                os.replace(f, output_filename)
-
+    # move tile files to destination directories
+    for f in glob.glob(tile_dir+"/*.*"):
+        match = re.search('wsi_(\w+)_tile_.+_label_(\w+)\..+', os.path.basename(f))
+        wsi, label = match.group(1), match.group(2)
+        split_set = "".join([k for k, v in wsi_dict.items() if wsi in v])
+        dest_dir = os.path.join(tile_dir, split_set, label)
+        if not os.path.exists(dest_dir): # make destination dir if needed
+            os.makedirs(dest_dir)
+        output_filename = os.path.join(dest_dir, os.path.basename(f))
+        os.replace(f, output_filename)
 
 
 
