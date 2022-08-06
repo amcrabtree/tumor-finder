@@ -1,0 +1,10 @@
+{
+    "out_dir": "../output", 
+    "run_name": "PCam_vgg16-v1_Ba10_Ep005",
+    "wsi_dir": "../data/wsi",
+    "tile_dir": "../data/tiles",
+    "model_file": "../models/PCam_vgg16-v1_Ba10_Ep005.pt",
+    "batch_size": 10,
+    "n_epochs": 5,
+    "class_names": "normal,tumor"
+}
