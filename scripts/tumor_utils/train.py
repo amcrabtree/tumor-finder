@@ -131,3 +131,12 @@ class Trainer():
             print(f'Epoch complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
 
         return best_val_loss
+
+
+def salute():
+    """ Encouragement for the user. """
+    print("\n",
+        "                 ___       ___     ___  __   __   __   ___     __   ___           ___              __\n",
+        "|\/|  /\  \ /     |  |__| |__     |__  /  \ |__) /  ` |__     |__) |__     |  | |  |  |__|    \ / /  \ |  |\n" 
+        "|  | /~~\  |      |  |  | |___    |    \__/ |  \ \__, |___    |__) |___    |/\| |  |  |  |     |  \__/ \__/.\n", 
+        sep="")
