@@ -4,6 +4,6 @@ models/
 **/*.pt
 **/.DS_Store
 config/config.json
-scripts/tumor.srun
-**/tiling*
-**/training*
+**/*.log
+**/*.err
+**/*.srun
