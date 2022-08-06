@@ -292,11 +292,14 @@ def SplitTileDirs (tile_dir:str):
     file_dict={} # key=label, value=tile filenames containing label
     wsi_list=[] # list of WSI filenames
     for f in glob.glob(tile_dir+"/*.*"):
-        f_label = re.search('wsi_(\w+)_node_.+_label_(\w+)\..+', os.path.basename(f)).group(1)
+        match = re.search('wsi_(\w+)_node_.+_label_(\w+)\..+', os.path.basename(f))
+        f_wsi, f_label = match.group(1), match.group(2)
+        if f_wsi not in wsi_list: wsi_list.append(f_wsi)
         if f_label in file_dict:
             file_dict[f_label].append(f)
         else:
             file_dict[f_label] = [f]
+
     # divide the WSIs between training and testing/val
     train_wsi_list, test_wsi_list = SplitStringList(wsi_list)
     # remove tiles from dict from wsis in test_wsi_list
