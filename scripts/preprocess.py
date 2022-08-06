@@ -47,12 +47,12 @@ if __name__ == "__main__":
                 tile_size=256,
                 level=0)
 
-            # subdivide tiles into training, validation, and testing folders
-            tumor_utils.tiling.SplitTileDirs (TILE_DIR)
+    # subdivide tiles into training, validation, and testing folders
+    tumor_utils.tiling.SplitTileDirs (TILE_DIR)
 
-            # remove margin tile directories
-            for set in ['train','val','test']:
-                margin_dir = os.path.join(TILE_DIR, set, 'margin')
-                shutil.rmtree(margin_dir, ignore_errors=True)
+    # remove margin tile directories
+    for set in ['train','val','test']:
+        margin_dir = os.path.join(TILE_DIR, set, 'margin')
+        shutil.rmtree(margin_dir, ignore_errors=True)
 
     print(f"\n\nSaved all resultant tiles within:  \n\t{os.path.abspath(TILE_DIR)}\n")
