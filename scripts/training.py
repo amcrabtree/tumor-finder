@@ -80,6 +80,7 @@ if __name__=='__main__':
 
     # 4. Train model
     salute()
+    print("\nTraining model ...\n")
     trainer = Trainer(model, config)
     trainer.train(train_loader, val_loader)
 
