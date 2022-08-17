@@ -204,7 +204,7 @@ class Tile (AnnWSI):
 
 
 
-def GenerateTiles(ann_obj:AnnWSI, outdir:str,
+def generate_tiles(ann_obj:AnnWSI, outdir:str,
                   tile_size:int, level:int, x_range:list=[], y_range:list=[]):
     """
     Iteratively generates and saves tiles over a specified area of a WSI.
