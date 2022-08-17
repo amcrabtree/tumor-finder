@@ -38,17 +38,19 @@ To change the run parameters including number of epochs and batch size, etc. you
 python3 ./scripts/training.py ./config/template_config.json
 ```
 
-### Test the model
+### Test the trained model
 
-To test the model, you're on your own. I'm working on this script at the mo'
+To test the model, run the following to produce a test_stats.csv file in the project output folder. 
 
-Good luck!   :-D
+```
+python3 ./scripts/test_metrics.py ./config/template_config.json
+```
 
 ### FAQ
 
 #### *What to do if tiling stops prematurely?*
 
-If your tiling gets stopped and you're okay with just using the tiles generated, run the following to sort files properly:
+If your tiling is interrupted and you're okay with just using the tiles generated, run the following to sort files properly:
 
 ```
 python ./scripts/tumor_utils/mv_tiles.py ./data/tiles
