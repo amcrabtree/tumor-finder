@@ -42,14 +42,16 @@ if __name__ == "__main__":
 
             # generate tiles
             print(f"\nTiling file: {os.path.basename(wsi_file)}")
-            tumor_utils.tiling.GenerateTiles (
+            tumor_utils.tiling.generate_tiles(
                 ann_wsi, outdir=TILE_DIR,
                 tile_size=256,
                 level=0)
-
-    # subdivide tiles into training, validation, and testing folders
-    tumor_utils.mv_tiles.balance_classes(TILE_DIR, sm_class='tumor', lg_class='normal', ratio=0.5) # balance 2 classes
-    tumor_utils.mv_tiles.split_tile_dirs (TILE_DIR, ratio=0.2)
-    tumor_utils.mv_tiles.rm_class_dir(TILE_DIR, "margin") # remove margin tile folders
+    
+    # balance 2 classes and move unneeded files to 'excess' directory
+    tumor_utils.mv_tiles.balance_classes(TILE_DIR, sm_class='tumor', lg_class='normal', ratio=0.5) 
+    # subdivide tiles into training, validation, and testing directories
+    tumor_utils.mv_tiles.split_tile_dirs(TILE_DIR, ratio=0.2)
+    # remove margin tile folders
+    tumor_utils.mv_tiles.rm_class_dir(TILE_DIR, "margin") 
 
     print(f"\n\nSaved all resultant tiles within:  \n\t{os.path.abspath(TILE_DIR)}\n")
