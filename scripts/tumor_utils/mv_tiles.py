@@ -126,7 +126,19 @@ def rm_class_dir (tile_dir:str, label_dir:str):
     """ Removes unwanted folder, label_dir, from all directories in tile_dir. """
     for split_dir in glob.glob(tile_dir+"/*"):
         unwanted_path = os.path.join(split_dir, label_dir)
-        shutil.rmtree(unwanted_path, ignore_errors=True)
+        shutil.move(unwanted_path, ignore_errors=True)
+
+def reset_tiles(tile_dir:str):
+    """ Move all images from subfolders back to main tile directory. """
+    # move images
+    for f in glob.glob(tile_dir+"/**/*.*", recursive=True):
+        f_dest = os.path.join(tile_dir, os.path.basename(f))
+        shutil.move(f, f_dest)
+    # remove old directories
+    for d in glob.glob(tile_dir+"/**/"):
+        print("removing:", d)
+        shutil.rmtree(d, ignore_errors=True)
+
 
 
 if __name__ == "__main__":
