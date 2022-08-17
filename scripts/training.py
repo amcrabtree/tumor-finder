@@ -1,22 +1,18 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 
 """
 This script trains a machine learning model for tumor detection. 
 
     Author: Angela Crabtree
 """
-
 import os
 import sys
 import pandas as pd
 import json
-
 from tumor_utils.data import TiledDataset,TryLoader # custom dataset class & test fxn
 from tumor_utils.train import Trainer,salute # custom trainer class and print msg
-
 from torch.utils.data import DataLoader
 import torch
-import torch.optim as optim 
 from torchvision.models import vgg16, VGG16_Weights
 import torch.nn as nn
 from torchvision import transforms
