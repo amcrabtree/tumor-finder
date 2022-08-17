@@ -48,7 +48,8 @@ if __name__ == "__main__":
                 level=0)
 
     # subdivide tiles into training, validation, and testing folders
-    tumor_utils.mv_tiles.SplitTileDirs (TILE_DIR, ratio=0.2)
-    tumor_utils.mv_tiles.RemoveClassDir(TILE_DIR, "margin") # remove margin tile folders
+    tumor_utils.mv_tiles.balance_classes(TILE_DIR, sm_class='tumor', lg_class='normal', ratio=0.5) # balance 2 classes
+    tumor_utils.mv_tiles.split_tile_dirs (TILE_DIR, ratio=0.2)
+    tumor_utils.mv_tiles.rm_class_dir(TILE_DIR, "margin") # remove margin tile folders
 
     print(f"\n\nSaved all resultant tiles within:  \n\t{os.path.abspath(TILE_DIR)}\n")
