@@ -1,16 +1,10 @@
-import os
-import sys
 import time
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim 
-import torch.optim as optim 
-from torch.optim import lr_scheduler
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-class Test():
+class Tester():
     """ Tests a model 
     """
     def __init__(self, model, config):
@@ -34,11 +28,9 @@ class Test():
         true_count = 0
         for i in range(len(preds)):
             pred_is_accurate = (preds[i] == labels.data[i]).data
-            #print(f'{preds[i]} == {labels.data[i]}: correct? {preds[i] == labels.data[i]}')
             if pred_is_accurate:
                 true_count += 1
         accuracy = true_count / len(preds)
-        #print(f'accuracy: {true_count} / {len(preds)} = {accuracy}')
         return accuracy
 
     def test(self, test_loader):
