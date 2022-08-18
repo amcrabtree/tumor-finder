@@ -22,8 +22,6 @@ cd tumor-finder
 sh ./scripts/pcam_download.sh
 ```
 
-![](./img/tile_distr.png)
-
 ### Tile WSIs
 
 In order to perform the training, the model needs image tiles (sub-images). To tile the WSIs, run the following:
@@ -31,6 +29,8 @@ In order to perform the training, the model needs image tiles (sub-images). To t
 ```
 python3 ./scripts/preprocess.py ./config/template_config.json
 ```
+
+![](./img/tile_distr.png)
 
 ### Train a model
 
