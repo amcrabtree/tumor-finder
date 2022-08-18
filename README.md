@@ -1,6 +1,8 @@
 # tumor-finder
 A framework for training ML models for tumor recognition on H&amp;E WSIs
 
+![](./img/tiles.png)
+
 ### Download repo
 
 To clone this repo and start this project, run the following:
