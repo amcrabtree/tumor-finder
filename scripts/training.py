@@ -18,6 +18,7 @@ import torch.nn as nn
 from torchvision import transforms
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+#torch.backends.cudnn.benchmark = True # turn on autotuner for increase in overall speed
 
 if __name__=='__main__':
 
@@ -57,11 +58,15 @@ if __name__=='__main__':
     train_loader = DataLoader(
         training_set, 
         batch_size=config['batch_size'], 
+        num_workers=1, # 1 is increased speed compared to 0
+        pin_memory=True, # must pin memory if num_workers>0
         shuffle=True, 
         drop_last=True)
     val_loader = DataLoader(
         val_set, 
         batch_size=config['batch_size'], 
+        num_workers=1, 
+        pin_memory=True,
         shuffle=True, 
         drop_last=True)
     #TryLoader(train_loader) # ensure dataset/dataloader are working correctly
