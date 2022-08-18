@@ -15,12 +15,14 @@ git clone https://github.com/amcrabtree/tumor-finder.git
 
 This script can either use Patch Camelyon whole slide images (WSIs) or your own annotated WSIs from H&E stained slides. If you annotate your own slides, do it on QuPath and export the geojson file with all the options selected. This script accepts XML annotations (used for PCam dataset) or the QuPath .geojson formatted annotations. These are ROI-type annotations, not point annotations (as would be used in per-cell phenotyping). 
 
-To download a sample of 20 tumor-containing WSIs from the PCam dataset, run the following:
+To download a sample of 25 tumor-containing WSIs from the PCam dataset, run the following:
 
 ```
 cd tumor-finder
 sh ./scripts/pcam_download.sh
 ```
+
+![](./img/tile_distr.png)
 
 ### Tile WSIs
 
