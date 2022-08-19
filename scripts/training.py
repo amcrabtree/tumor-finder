@@ -73,6 +73,9 @@ if __name__=='__main__':
 
     # 3. Load Model
     model = vgg16(weights=VGG16_Weights.DEFAULT)
+    # modify dropout layers from proportion of zeroes =0.5 to =0.7
+    model.classifier[2] = nn.Dropout(p=0.7, inplace=False)
+    model.classifier[5] = nn.Dropout(p=0.7, inplace=False)
     # change tensor dimensions out of model
     num_ftrs = model.classifier[6].in_features # last layer's input size
     model.classifier[6] = nn.Linear(num_ftrs, len(val_set.label_dict), device=device) 
