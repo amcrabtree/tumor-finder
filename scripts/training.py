@@ -96,7 +96,8 @@ if __name__=='__main__':
 
     # 5. save the trained model to file
     model_scripted = torch.jit.script(model) # Export to TorchScript
-    model_scripted.save(config['model_file']) # Save
+    model_outfile = os.path.join(project_dir, "final_model.pt")
+    model_scripted.save(model_outfile) # Save
 
     # 6. Save the training stats (loss and accuracy) to CSV
     stats_df = pd.DataFrame.from_dict(trainer.stats_list)
