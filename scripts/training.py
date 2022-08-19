@@ -28,7 +28,7 @@ if __name__=='__main__':
     config_file.close()
 
     # create project directory if it doesn't exist
-    project_dir = os.path.join(config['out_dir'], config['run_name'])
+    project_dir = os.path.join(config['run_dir'], config['run_name'])
     if not os.path.exists(project_dir):
         os.makedirs(project_dir)
 
