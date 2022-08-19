@@ -32,6 +32,12 @@ if __name__=='__main__':
     if not os.path.exists(project_dir):
         os.makedirs(project_dir)
 
+    # redirect stdout to logfile
+    old_stdout = sys.stdout
+    log_filename = os.path.join(project_dir, "training.log")
+    log_file = open(log_filename,"w")
+    sys.stdout = log_file
+
     # 1. import datasets with custom Dataset class
     label_transform = transforms.Lambda(lambda y: torch.tensor(y, dtype=torch.float))
     img_transform = transforms.Compose([
@@ -102,3 +108,7 @@ if __name__=='__main__':
     #config['n_train_tiles'] = len(training_set)
     #config['n_val_tiles'] = len(val_set)
     #config.update(model.config) # append model config info to config dict
+
+    # close logfile and reset stdout
+    sys.stdout = old_stdout
+    log_file.close()
