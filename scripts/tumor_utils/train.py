@@ -117,7 +117,7 @@ class Trainer():
             if val_loss < best_val_loss:
                 print(f"{val_loss} < {best_val_loss} saving model ...")
                 project_dir = os.path.join(
-                    self.config['out_dir'], self.config['run_name'])
+                    self.config['run_dir'], self.config['run_name'])
                 model_path = os.path.join(
                     project_dir, "running_model.pt")
                 torch.save(self.model, model_path)
