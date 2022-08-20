@@ -61,3 +61,15 @@ python ./scripts/tumor_utils/mv_tiles.py ./data/tiles
 ```
 
 Proceed to train your model. 
+
+## TODOs
+
+- [ ] Troubleshoot model's lack of learning
+- [ ] Debug model testing scripts 
+- [ ] Add more config options
+
+## Acknowledgements
+
+This project is inspired by the project [pytorch-template](https://github.com/victoresque/pytorch-template) by [Victor Huang](https://github.com/victoresque).
+
+That project was inspired by the project [Tensorflow-Project-Template](https://github.com/MrGemy95/Tensorflow-Project-Template) by [Mahmoud Gemy](https://github.com/MrGemy95)
