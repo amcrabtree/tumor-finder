@@ -6,7 +6,6 @@ import numpy as np
 import torch
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
-from torchvision.io import read_image
 
 class TiledDataset(Dataset):
     """ Generates PyTorch Dataset object for model training
@@ -21,20 +20,31 @@ class TiledDataset(Dataset):
         """ Constructor method
         """
         self.subset_dir = set_dir
-        self.transform = transform
-        self.target_transform = target_transform
+        self.transform = None
+        self.target_transform = None
         self.label_dict = {0:'normal', 1:'tumor'}
-        self.tile_files = self.TileFileList()
-        self.all_labels = self.LabelsList()
+        self.tile_files = self.list_tile_files()
+        self.all_labels = self.list_labels()
+    
+    def transform_data(self):
+        self.target_transform = transforms.Lambda(lambda y: torch.tensor(y, dtype=torch.float))
+        self.transform = transforms.Compose([
+            transforms.CenterCrop(224),
+            transforms.PILToTensor(),
+            transforms.ConvertImageDtype(torch.float), 
+            transforms.Normalize(
+                mean=[0.48235, 0.45882, 0.40784], 
+                std=[0.00392156862745098, 0.00392156862745098, 0.00392156862745098]),
+        ])
         
-    def TileFileList(self)->list:
+    def list_tile_files(self)->list:
         """ Returns list of tile filenames in Dataset
         """
         pattern=os.path.join(self.subset_dir, "**/*.*")
         file_list = glob.glob(pattern)
         return file_list
 
-    def LabelsList(self)->list:
+    def list_labels(self)->list:
         """ Returns list of tile labels in Dataset
         """
         pattern=re.compile('.+_label_(\w+)[.]\w+')
@@ -67,10 +77,7 @@ class TiledDataset(Dataset):
         label_num = list(self.label_dict.keys()) [ 
             list(self.label_dict.values()).index(label)]
 
-        if self.transform:
-            image = self.transform(image)
-        if self.target_transform:
-            label_num = self.target_transform(label_num)
+        self.transform_data()
         #print(f"\n\ttype of image: {image.size()}")
         #print(f"\ttype of label_num: {type(label_num)}")
 
@@ -78,7 +85,7 @@ class TiledDataset(Dataset):
 
 
 
-def TryLoader(loader:DataLoader):
+def try_loading(loader:DataLoader):
     """ Ensure the dataset and dataloader is working properly. 
     Note: wasn't working after I transformed dataset. Didn't care to fix. 
     """
