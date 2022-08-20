@@ -2,11 +2,13 @@ import os
 import sys
 import time
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
-import torch.optim as optim 
+import torch.nn.functional as F
 import torch.optim as optim 
 from torch.optim import lr_scheduler
+from torch.autograd import Variable
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -14,19 +16,33 @@ class Trainer():
     """ Trains a model 
     """
     def __init__(self, model, config):
-        self.config = config
         self.model = model
-        self.optimizer = optim.SGD(self.model.parameters(), lr=0.0001, momentum=0.9)
-        self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=7, gamma=0.1)
-        self.n_epochs = config['n_epochs']
+        self.config = config
+
+        self.n_epochs = config['trainer']['epochs']
+        self.criterion = eval(config['loss'])
+        self.optimizer = torch.optim.SGD(
+            self.model.parameters(), 
+            lr = config['optimizer']['args']['lr'], 
+            momentum = config['optimizer']['args']['momentum'])
+        self.scheduler = torch.optim.lr_scheduler.StepLR(
+            self.optimizer, 
+            step_size = config['optimizer']['lr_scheduler']['step_size'], 
+            gamma = config['optimizer']['lr_scheduler']['gamma'])
+
         self.stats_list = []
         self.best_acc = 0.0
         self.current_epoch = 0
     
     def loss_fn(self, inputs, labels):
-        criterion = nn.CrossEntropyLoss()
         outputs = self.model(inputs)
-        loss = criterion(outputs, labels.long()) # .long converts to scalar
+        if type(self.criterion) == torch.nn.modules.loss.CrossEntropyLoss:
+            loss = self.criterion(outputs, labels.long()) # .long converts to int tensor
+        else: # torch.nn.modules.loss.MSELoss
+            _, preds = torch.max(outputs, dim=1) # best prediction (max prob.)
+            preds = torch.tensor(preds, dtype=torch.float)
+            loss = self.criterion(preds, labels) 
+            loss = Variable(loss, requires_grad = True)
         return loss
 
     def accuracy_fn(self, inputs, labels):
@@ -34,12 +50,7 @@ class Trainer():
         """
         outputs = self.model(inputs)
         _, preds = torch.max(outputs, dim=1) # best prediction (max prob.)
-        true_count = 0
-        for i in range(len(preds)):
-            pred_is_accurate = (preds[i] == labels.data[i]).data
-            #print(f'{preds[i]} == {labels.data[i]}: correct? {preds[i] == labels.data[i]}')
-            if pred_is_accurate:
-                true_count += 1
+        true_count = torch.sum(torch.eq(preds, labels))
         accuracy = true_count / len(preds)
         #print(f'accuracy: {true_count} / {len(preds)} = {accuracy}')
         return accuracy
@@ -53,41 +64,36 @@ class Trainer():
             images, labels = [images.to(device), labels.to(device)]
             loss = self.loss_fn(images, labels)
             loss.backward()
-            running_loss += loss.item() #* images.size(0)
             self.optimizer.step()
             self.scheduler.step()
+            running_loss += loss.item() * images.size(0) 
             batch_acc = self.accuracy_fn(images, labels)
-            running_accuracy += batch_acc
-            # if (step+1)% self.grad_acum_steps == 0:
-            #     self.optimizer.step()
-            #     self.optimizer.zero_grad()
+            running_accuracy += batch_acc.item()
     
         ## print and save epoch loss & acc
         epoch_loss = running_loss / len(train_loader)
         epoch_acc = running_accuracy / len(train_loader)
+
         self.stats_list.append(  # save loss info in stats_list attribute
             {'epoch':self.current_epoch,
             'phase':'training',
             'epoch_loss':epoch_loss,
             'epoch_acc':epoch_acc
             })
-        print(f'train ItemLoss: {loss.item():.4f} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+        print(f'train Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
         #self.writer.add_scalar('train_loss', loss.item(),  self.current_epoch)
-        return loss.item()
+        return epoch_loss
 
     def val_step(self, val_loader):
         torch.set_grad_enabled(False)
-        step_loss = []
         running_loss = 0.0
         running_accuracy = 0
         for step, (images, labels) in enumerate(val_loader):
             images, labels = [images.to(device), labels.to(device)]
             loss = self.loss_fn(images, labels)
-            step_loss.append(loss.item())
-            running_loss += loss.item() #* images.size(0)
+            running_loss += loss.item() * images.size(0)
             batch_acc = self.accuracy_fn(images, labels)
-            running_accuracy += batch_acc
-        avg_loss = np.mean(step_loss)
+            running_accuracy += batch_acc.item()
 
         ## print and save epoch loss & acc
         epoch_loss = running_loss / len(val_loader)
@@ -98,9 +104,9 @@ class Trainer():
             'epoch_loss':epoch_loss,
             'epoch_acc':epoch_acc
             })
-        print(f'val AvgLoss: {avg_loss:.4f} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+        print(f'val Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
         #self.writer.add_scalar('val_loss', avg_loss,  self.current_epoch)
-        return avg_loss
+        return epoch_loss
 
     def train(self, train_loader, val_loader):
         best_val_loss = float('inf')
@@ -116,15 +122,14 @@ class Trainer():
             # save model weights to file if validation loss is smallest
             if val_loss < best_val_loss:
                 print(f"{val_loss} < {best_val_loss} saving model ...")
-                project_dir = os.path.join(
-                    self.config['run_dir'], self.config['run_name'])
-                model_path = os.path.join(
-                    project_dir, "running_model.pt")
-                torch.save(self.model, model_path)
+                torch.save(self.model, self.config['output']['final_model'])
                 best_val_loss = val_loss
             self.current_epoch+=1
             time_elapsed = time.time() - since
             print(f'Epoch complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+            # save current stats  info to file
+            stats_df = pd.DataFrame.from_dict(self.stats_list)
+            stats_df.to_csv(self.config['output']['stats_file'], index=False)
 
         return best_val_loss
 
