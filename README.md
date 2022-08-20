@@ -67,6 +67,7 @@ Proceed to train your model.
 - [ ] Troubleshoot model's lack of learning
 - [ ] Debug model testing scripts 
 - [ ] Add more config options
+- [ ] Add option to use pre-tiled PCam data
 
 ## Acknowledgements
 
