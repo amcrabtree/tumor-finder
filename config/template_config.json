@@ -47,6 +47,10 @@
         "final_model": "final_model.pt",
         "running_model": "running_model.pt",
         "train_logfile": "training.log",
-        "stats_file": "stats.csv"
-    }
+        "stats_file": "stats.csv",
+        "loss_plot": "plot_loss.png",
+        "acc_plot": "plot_acc.png",
+        "image_sample": "image_sample.jpg"
+    },
+    "notes": {}
 }
