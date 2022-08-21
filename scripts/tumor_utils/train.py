@@ -27,8 +27,8 @@ class Trainer():
             momentum = config['optimizer']['args']['momentum'])
         self.scheduler = torch.optim.lr_scheduler.StepLR(
             self.optimizer, 
-            step_size = config['optimizer']['lr_scheduler']['step_size'], 
-            gamma = config['optimizer']['lr_scheduler']['gamma'])
+            step_size = config['lr_scheduler']['args']['step_size'], 
+            gamma = config['lr_scheduler']['args']['gamma'])
 
         self.stats_list = []
         self.best_acc = 0.0

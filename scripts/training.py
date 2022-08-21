@@ -9,14 +9,14 @@ import os
 import sys
 import json
 import shutil
-from tumor_utils.data import TiledDataset,try_loading # custom dataset class & test fxn
+from tumor_utils.data import TiledDataset # custom dataset class
 from tumor_utils.train import Trainer,salute # custom trainer class and print msg
-import tumor_utils # custom dataset for 96x96 Pcam tiles
+from tumor_utils.pcamv1 import PCam # custom dataset class for 96x96 Pcam tiles
+from tumor_utils.viz import print_sample_imgs # print sample images function
 from torch.utils.data import DataLoader
 import torch
 from torchvision.models import vgg16, VGG16_Weights
 import torch.nn as nn
-from torchvision import transforms
 from torchsummary import summary
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -43,16 +43,20 @@ if __name__=='__main__':
 
     # 1. import datasets with custom Dataset class
     #MyDataset = eval(config['data_loader']['dataset_type'])
-    training_set = tumor_utils.pcamv1.PCam(
+    training_set = PCam(
         set_dir = os.path.join(
             config['data_loader']['args']['data_dir'], 
             config['data_loader']['args']['train_subd'])
     )
-    val_set = tumor_utils.pcamv1.PCam(
+    val_set = PCam(
         set_dir = os.path.join(
             config['data_loader']['args']['data_dir'], 
             config['data_loader']['args']['val_subd'])
     )
+    print_sample_imgs(val_set, outfile=config['output']['image_sample'])
+    #print(f"length of val set is {len(val_set)}")
+    #print(f"number of tumor in val set = {val_set.all_labels.count('tumor')}")
+    #print(val_set[1])
 
     # 2. load datasets into dataloaders
     train_loader = DataLoader(
