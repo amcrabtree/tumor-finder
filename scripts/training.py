@@ -54,9 +54,6 @@ if __name__=='__main__':
             config['data_loader']['args']['val_subd'])
     )
     print_sample_imgs(val_set, outfile=config['output']['image_sample'])
-    #print(f"length of val set is {len(val_set)}")
-    #print(f"number of tumor in val set = {val_set.all_labels.count('tumor')}")
-    #print(val_set[1])
 
     # 2. load datasets into dataloaders
     train_loader = DataLoader(
@@ -73,29 +70,31 @@ if __name__=='__main__':
         pin_memory = True,
         shuffle = config['data_loader']['args']['shuffle'], 
         drop_last = True)
-    #try_loading(train_loader) # ensure dataset/dataloader are working correctly
 
     # 3. Load Model
-    model = vgg16(weights=VGG16_Weights.DEFAULT)
+    #model = vgg16(weights=VGG16_Weights.DEFAULT)
+    model = vgg16()
+
     # modify dropout layers from proportion of zeroes =0.5 to =0.7
-    model.classifier[2] = nn.Dropout(p=0.7, inplace=False)
-    model.classifier[5] = nn.Dropout(p=0.7, inplace=False)
+    #model.classifier[2] = nn.Dropout(p=0.5, inplace=False)
+    #model.classifier[5] = nn.Dropout(p=0.5, inplace=False)
+
     # change tensor dimensions out of model
     num_ftrs = model.classifier[6].in_features # last layer's input size
     num_classes = len(val_set.label_dict)
-    #if num_classes == 2: num_classes=1 # if only 2 classes, make it binary
     model.classifier[6] = nn.Linear(num_ftrs, num_classes, device=device) 
     model.to(device)
 
     # save model summary to file
-    img, _ = next(iter(train_loader))
-    b,c,h,w = img.size()
-    INPUT_SIZE = (c,h,w)
     old_stdout = sys.stdout # save original stdout
     model_summary = open(config['output']['model_summary_file'],"w")
     sys.stdout = model_summary
+
     print(model, "\n\n\n")
-    summary(model, INPUT_SIZE)
+
+    img, _ = training_set[0]
+    summary(model, img.size())
+
     model_summary.close()
     
     # 4. Train model
@@ -111,11 +110,12 @@ if __name__=='__main__':
     model_scripted.save(config['output']['final_model']) # Save
 
     # 6. append additional info to config and save to output config in project_dir
-    config['notes']['device'] = str(device)
-    config['notes']['n_train_tiles'] = len(training_set)
-    config['notes']['n_val_tiles'] = len(val_set)
+    config['notes'].update({
+        'device': str(device),
+        'n_train_tiles': len(training_set),
+        'n_val_tiles': len(val_set)
+    })
     json_object = json.dumps(config, indent=4) # Serializing json
-    #config.update(model.config) # append model config info to config dict
     with open(config['output']['config_outfile'], "w") as f:
         f.write(json_object)
     

@@ -5,6 +5,8 @@ import seaborn as sns; sns.set_theme()
 from torch.utils.data import Dataset
 import random
 import torch
+import pandas as pd
+from plotnine import *
 
 def ViewNpyImg(npy_file:str):
     """ Display .npy tile image as pop-up. """
@@ -33,7 +35,7 @@ def print_sample_imgs(dataset:Dataset, outfile:str):
         image, label = dataset[idx]
         if type(image) == torch.Tensor:
             image = image.permute(1, 2, 0).numpy()
-            image = (image * 255).astype(np.uint8)
+            image = np.clip(image, 0, 1)
         label = "normal" if label==0 else "tumor"
         #print(idx, image.shape, type(image), label)
         plt.figure(1)
@@ -43,3 +45,43 @@ def print_sample_imgs(dataset:Dataset, outfile:str):
         plt.imshow(image)
     plt.show()
     plt.savefig(outfile)
+
+def plot_loss(df:pd.DataFrame, outfile:str=""):
+    # line plot: epoch loss
+    p = (ggplot(df) +
+        aes(x='epoch', y='epoch_loss', group='phase') + 
+        geom_line(aes(color='phase'))+ 
+        geom_point(aes(color='phase')) + 
+        theme_classic() + 
+        labs(title="Epoch Loss", x="Epoch", y="Loss") 
+    )
+    # save file
+    filename = "plot_loss.png" if outfile == "" else outfile
+    p.save(filename=filename,
+        plot=p,
+        device='png',
+        dpi=300,
+        height=3,
+        width=6,
+        verbose = False)
+
+
+def plot_acc(df:pd.DataFrame, outfile:str=""):
+    # line plot: epoch accuracy
+    p = (ggplot(df) +
+        aes(x='epoch', y='epoch_acc', group='phase') + 
+        geom_line(aes(color='phase')) + 
+        geom_point(aes(color='phase')) + 
+        theme_classic() + 
+        labs(title="Epoch Accuracy", x="Epoch", y="Accuracy") + 
+        ylim(0, 1)
+    )
+    # save file
+    filename = "plot_acc.png" if outfile == "" else outfile
+    p.save(filename=filename,
+        plot=p,
+        device='png',
+        dpi=300,
+        height=3,
+        width=6,
+        verbose = False)

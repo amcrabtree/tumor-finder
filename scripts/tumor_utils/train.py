@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim 
 from torch.optim import lr_scheduler
 from torch.autograd import Variable
+from tumor_utils.viz import plot_acc, plot_loss # my plotting fxns
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -37,6 +38,8 @@ class Trainer():
     def loss_fn(self, inputs, labels):
         outputs = self.model(inputs)
         if type(self.criterion) == torch.nn.modules.loss.CrossEntropyLoss:
+            #cross_entropy_loss = nn.CrossEntropyLoss()
+            #loss = cross_entropy_loss(outputs, labels.long()) # .long converts to int tensor
             loss = self.criterion(outputs, labels.long()) # .long converts to int tensor
         else: # torch.nn.modules.loss.MSELoss
             _, preds = torch.max(outputs, dim=1) # best prediction (max prob.)
@@ -66,7 +69,7 @@ class Trainer():
             loss.backward()
             self.optimizer.step()
             self.scheduler.step()
-            running_loss += loss.item() * images.size(0) 
+            running_loss += loss.item() #* images.size(0) 
             batch_acc = self.accuracy_fn(images, labels)
             running_accuracy += batch_acc.item()
     
@@ -91,7 +94,7 @@ class Trainer():
         for step, (images, labels) in enumerate(val_loader):
             images, labels = [images.to(device), labels.to(device)]
             loss = self.loss_fn(images, labels)
-            running_loss += loss.item() * images.size(0)
+            running_loss += loss.item() #* images.size(0)
             batch_acc = self.accuracy_fn(images, labels)
             running_accuracy += batch_acc.item()
 
@@ -122,7 +125,7 @@ class Trainer():
             # save model weights to file if validation loss is smallest
             if val_loss < best_val_loss:
                 print(f"{val_loss} < {best_val_loss} saving model ...")
-                torch.save(self.model, self.config['output']['final_model'])
+                torch.save(self.model, self.config['output']['running_model'])
                 best_val_loss = val_loss
             self.current_epoch+=1
             time_elapsed = time.time() - since
@@ -130,6 +133,9 @@ class Trainer():
             # save current stats  info to file
             stats_df = pd.DataFrame.from_dict(self.stats_list)
             stats_df.to_csv(self.config['output']['stats_file'], index=False)
+            # save plots
+            plot_loss(stats_df, outfile=self.config['output']['loss_plot'])
+            plot_acc(stats_df, outfile=self.config['output']['acc_plot'])
 
         return best_val_loss
 
