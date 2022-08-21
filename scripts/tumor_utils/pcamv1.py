@@ -28,7 +28,7 @@ class PCam(Dataset):
         self.target_transform = transforms.Lambda(lambda y: torch.tensor(y, dtype=torch.float))
         self.transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Pad(64), # should make input image = 224x224
+            #transforms.Pad(64), # should make input image = 224x224
             transforms.ConvertImageDtype(torch.float), 
             transforms.Normalize(
                 mean=[0.48235, 0.45882, 0.40784], 
