@@ -78,8 +78,5 @@ class PCam(Dataset):
         # transform data if transforms are given
         if self.transform: image = self.transform(image)
         if self.target_transform: label_num = self.target_transform(label_num)
-        #print(f"\n\tsize and type of image: {image.size(), type(image)}")
-        #print(f"\ttype of label_num: {type(label_num)}")
 
         return image, label_num
-        
