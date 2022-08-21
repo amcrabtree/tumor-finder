@@ -134,8 +134,9 @@ class Trainer():
             stats_df = pd.DataFrame.from_dict(self.stats_list)
             stats_df.to_csv(self.config['output']['stats_file'], index=False)
             # save plots
-            plot_loss(stats_df, outfile=self.config['output']['loss_plot'])
-            plot_acc(stats_df, outfile=self.config['output']['acc_plot'])
+            if self.current_epoch > 1:
+                plot_loss(stats_df, outfile=self.config['output']['loss_plot'])
+                plot_acc(stats_df, outfile=self.config['output']['acc_plot'])
 
         return best_val_loss
 
