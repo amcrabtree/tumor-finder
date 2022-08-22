@@ -11,7 +11,7 @@
     "data_loader": {
         "dataset_type": "",
         "args":{
-            "data_dir": "./data/tiles",
+            "data_dir": "./data/pcam96",
             "train_subd": "train", 
             "val_subd": "val", 
             "test_subd": "test", 
