@@ -5,11 +5,11 @@
     "tile_dir": "./data/tiles",
     "class_names": "normal,tumor", 
     "arch": {
-        "type": "torchvision.models.vgg16",
-        "args": {"weights":"torchvision.models.VGG16_Weights.DEFAULT"}
+        "type": "",
+        "args": {}
     },
     "data_loader": {
-        "dataset_type": "tumor_utils.pcamv1.PCam",
+        "dataset_type": "",
         "args":{
             "data_dir": "./data/tiles",
             "train_subd": "train", 
@@ -21,7 +21,7 @@
         }
     },
     "optimizer": {
-        "type": "torch.optim.SGD",
+        "type": "",
         "args":{
             "lr": 0.0001,
             "momentum": 0.9
@@ -32,7 +32,7 @@
         "accuracy", "loss"
     ],
     "lr_scheduler": {
-        "type": "torch.optim.lr_scheduler.StepLR",
+        "type": "",
         "args": {
             "step_size": 20,
             "gamma": 0.1
