@@ -15,9 +15,8 @@ from tumor_utils.pcamv1 import PCam # custom dataset class for 96x96 Pcam tiles
 from tumor_utils.viz import print_sample_imgs # print sample images function
 from torch.utils.data import DataLoader
 import torch
-from torchvision.models import vgg16, VGG16_Weights
-import torch.nn as nn
 from torchsummary import summary
+from tumor_utils.model import vgg16_mod,NaturalSceneClassification # custom models
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #torch.backends.cudnn.benchmark = True # turn on autotuner for increase in overall speed
@@ -72,17 +71,8 @@ if __name__=='__main__':
         drop_last = True)
 
     # 3. Load Model
-    #model = vgg16(weights=VGG16_Weights.DEFAULT)
-    model = vgg16()
-
-    # modify dropout layers from proportion of zeroes =0.5 to =0.7
-    #model.classifier[2] = nn.Dropout(p=0.5, inplace=False)
-    #model.classifier[5] = nn.Dropout(p=0.5, inplace=False)
-
-    # change tensor dimensions out of model
-    num_ftrs = model.classifier[6].in_features # last layer's input size
-    num_classes = len(val_set.label_dict)
-    model.classifier[6] = nn.Linear(num_ftrs, num_classes, device=device) 
+    #model = vgg16_mod(device)
+    model = NaturalSceneClassification()
     model.to(device)
 
     # save model summary to file
@@ -92,8 +82,8 @@ if __name__=='__main__':
 
     print(model, "\n\n\n")
 
-    img, _ = training_set[0]
-    summary(model, img.size())
+    #img, _ = training_set[0]
+    #summary(model, img.size())
 
     model_summary.close()
     
