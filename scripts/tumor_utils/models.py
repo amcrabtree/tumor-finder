@@ -5,21 +5,6 @@ import torch
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-class vgg16_mod():
-    """ VGG16 model, modified
-    """
-    def __init__(self):
-        self.model = vgg16(weights=VGG16_Weights.DEFAULT)
-
-        # modify dropout layers from proportion of zeroes =0.5 to =0.3
-        #model.classifier[2] = nn.Dropout(p=0.3, inplace=False)
-        #model.classifier[5] = nn.Dropout(p=0.3, inplace=False)
-
-        # change tensor dimensions out of model
-        num_ftrs = self.model.classifier[6].in_features # last layer's input size
-        num_classes = 2
-        self.model.classifier[6] = nn.Linear(num_ftrs, num_classes, device=device) 
-
 class NaturalSceneClassification(nn.Module):
     def __init__(self):
         super().__init__()
@@ -44,7 +29,7 @@ class NaturalSceneClassification(nn.Module):
             nn.MaxPool2d(2,2),
             
             nn.Flatten(),
-            nn.Linear(36864,1024),
+            nn.Linear(200704,1024),
             nn.ReLU(),
             nn.Linear(1024, 512),
             nn.ReLU(),

@@ -1,7 +1,5 @@
-import os
-import sys
+
 import time
-import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -19,18 +17,11 @@ class Trainer():
     def __init__(self, model, config):
         self.model = model
         self.config = config
-
         self.n_epochs = config['trainer']['epochs']
-        self.criterion = eval(config['loss'])
-        self.optimizer = torch.optim.SGD(
+        self.criterion = getattr(torch.nn, config['loss'])
+        self.optimizer = getattr(torch.optim, config['optimizer']['type'])(
             self.model.parameters(), 
-            lr = config['optimizer']['args']['lr'], 
-            momentum = config['optimizer']['args']['momentum'])
-        self.scheduler = torch.optim.lr_scheduler.StepLR(
-            self.optimizer, 
-            step_size = config['lr_scheduler']['args']['step_size'], 
-            gamma = config['lr_scheduler']['args']['gamma'])
-
+            lr = config['optimizer']['args']['lr'])
         self.stats_list = []
         self.best_acc = 0.0
         self.current_epoch = 0
@@ -38,8 +29,6 @@ class Trainer():
     def loss_fn(self, inputs, labels):
         outputs = self.model(inputs)
         if type(self.criterion) == torch.nn.modules.loss.CrossEntropyLoss:
-            #cross_entropy_loss = nn.CrossEntropyLoss()
-            #loss = cross_entropy_loss(outputs, labels.long()) # .long converts to int tensor
             loss = self.criterion(outputs, labels.long()) # .long converts to int tensor
         else: # torch.nn.modules.loss.MSELoss
             _, preds = torch.max(outputs, dim=1) # best prediction (max prob.)
@@ -55,7 +44,6 @@ class Trainer():
         _, preds = torch.max(outputs, dim=1) # best prediction (max prob.)
         true_count = torch.sum(torch.eq(preds, labels))
         accuracy = true_count / len(preds)
-        #print(f'accuracy: {true_count} / {len(preds)} = {accuracy}')
         return accuracy
 
     def train_step(self, train_loader):
@@ -68,11 +56,11 @@ class Trainer():
             loss = self.loss_fn(images, labels)
             loss.backward()
             self.optimizer.step()
-            self.scheduler.step()
-            running_loss += loss.item() #* images.size(0) 
+            running_loss += loss.item() 
             batch_acc = self.accuracy_fn(images, labels)
             running_accuracy += batch_acc.item()
-    
+        #self.scheduler.step() # <-- activate if using scheduler
+
         ## print and save epoch loss & acc
         epoch_loss = running_loss / len(train_loader)
         epoch_acc = running_accuracy / len(train_loader)
@@ -84,7 +72,6 @@ class Trainer():
             'epoch_acc':epoch_acc
             })
         print(f'train Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
-        #self.writer.add_scalar('train_loss', loss.item(),  self.current_epoch)
         return epoch_loss
 
     def val_step(self, val_loader):
@@ -94,7 +81,7 @@ class Trainer():
         for step, (images, labels) in enumerate(val_loader):
             images, labels = [images.to(device), labels.to(device)]
             loss = self.loss_fn(images, labels)
-            running_loss += loss.item() #* images.size(0)
+            running_loss += loss.item() 
             batch_acc = self.accuracy_fn(images, labels)
             running_accuracy += batch_acc.item()
 

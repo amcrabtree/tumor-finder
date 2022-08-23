@@ -1,17 +1,13 @@
 {
-    "run_name": "PCam_VGG16_Ba128_Ep10_ce",
+    "run_name": "PCam_NScene",
     "run_dir": "./output", 
     "wsi_dir": "./data/wsi",
     "tile_dir": "./data/tiles",
     "class_names": "normal,tumor", 
-    "arch": {
-        "type": "",
-        "args": {}
-    },
     "data_loader": {
-        "dataset_type": "",
+        "dataset_type": "TiledDataset",
         "args":{
-            "data_dir": "./data/pcam96",
+            "data_dir": "./data/tiles",
             "train_subd": "train", 
             "val_subd": "val", 
             "test_subd": "test", 
@@ -20,26 +16,24 @@
             "num_workers": 1
         }
     },
+    "model": {
+        "arch": "NaturalSceneClassification",
+        "args": {}
+    },
+    "loss": "CrossEntropyLoss",
+    "trainer": {
+        "epochs": 50,
+        "metrics": ["accuracy", "loss"]
+    },
     "optimizer": {
-        "type": "",
+        "type": "Adam",
         "args":{
-            "lr": 0.0001,
-            "momentum": 0.9
+            "lr": 0.0001
         }
     },
-    "loss": "torch.nn.CrossEntropyLoss()",
-    "metrics": [
-        "accuracy", "loss"
-    ],
     "lr_scheduler": {
         "type": "",
-        "args": {
-            "step_size": 20,
-            "gamma": 0.1
-        }
-    },
-    "trainer": {
-        "epochs": 10
+        "args": {}
     },
     "output": {
         "config_outfile": "final_config.json",
