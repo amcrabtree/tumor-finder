@@ -64,10 +64,9 @@ Proceed to train your model.
 
 ## TODOs
 
-- [ ] Troubleshoot model's lack of learning
 - [ ] Debug model testing scripts 
-- [ ] Add more config options
-- [ ] Add option to use pre-tiled PCam data
+- [x] Add more config options
+- [x] Add option to use pre-tiled PCam data
 
 ## Acknowledgements
 
