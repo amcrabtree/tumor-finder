@@ -18,7 +18,7 @@ class Trainer():
         self.model = model
         self.config = config
         self.n_epochs = config['trainer']['epochs']
-        self.criterion = getattr(torch.nn, config['loss'])
+        self.criterion = getattr(torch.nn.modules.loss, config['loss'])()
         self.optimizer = getattr(torch.optim, config['optimizer']['type'])(
             self.model.parameters(), 
             lr = config['optimizer']['args']['lr'])
@@ -30,11 +30,9 @@ class Trainer():
         outputs = self.model(inputs)
         if type(self.criterion) == torch.nn.modules.loss.CrossEntropyLoss:
             loss = self.criterion(outputs, labels.long()) # .long converts to int tensor
-        else: # torch.nn.modules.loss.MSELoss
-            _, preds = torch.max(outputs, dim=1) # best prediction (max prob.)
-            preds = torch.tensor(preds, dtype=torch.float)
-            loss = self.criterion(preds, labels) 
-            loss = Variable(loss, requires_grad = True)
+        else: 
+            print("Cannot currently run loss calculations on anything besides CrossEntropyLoss.")
+            exit(1)
         return loss
 
     def accuracy_fn(self, inputs, labels):

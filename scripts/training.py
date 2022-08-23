@@ -9,15 +9,13 @@ import os
 import sys
 import json
 import shutil
-#from tumor_utils.data import TiledDataset # custom dataset class
 from tumor_utils.train import Trainer,salute # custom trainer class and print msg
-#from tumor_utils.pcamv1 import PCam # custom dataset class for 96x96 Pcam tiles
 from tumor_utils.viz import print_sample_imgs # print sample images function
-from torch.utils.data import DataLoader
 import torch
+from torch.utils.data import DataLoader
 from torchsummary import summary
 #from tumor_utils.models import vgg16_mod,NaturalSceneClassification # custom models
-from tumor_utils import models, data
+from tumor_utils import my_models, data, tformer
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #torch.backends.cudnn.benchmark = True # turn on autotuner for increase in overall speed
@@ -46,16 +44,23 @@ if __name__=='__main__':
     training_set = getattr(data, config['data_loader']['type'])(
         set_dir = os.path.join(
             config['data_loader']['args']['data_dir'], 
-            config['data_loader']['args']['train_subd'])
+            config['data_loader']['args']['train_subd']),
+        transform = tformer.custom_tfm(
+            model=config['model']['arch'], data='image', input_size=256),
+        target_transform = tformer.custom_tfm(
+            model=config['model']['arch'], data='label', input_size=256)
             )
-    print("training_set type:", type(training_set))
     val_set = getattr(data, config['data_loader']['type'])(
         set_dir = os.path.join(
             config['data_loader']['args']['data_dir'], 
-            config['data_loader']['args']['val_subd'])
+            config['data_loader']['args']['val_subd']),
+        transform = tformer.custom_tfm(
+            model=config['model']['arch'], data='image', input_size=256),
+        target_transform = tformer.custom_tfm(
+            model=config['model']['arch'], data='label', input_size=256)
             )
     print_sample_imgs(val_set, outfile=config['output']['image_sample'])
-
+    
     # 2. load datasets into dataloaders
     train_loader = DataLoader(
         training_set, 
@@ -73,19 +78,19 @@ if __name__=='__main__':
         drop_last = True)
 
     # 3. Load Model
-    model = getattr(models, config['model']['arch'])
-    model.to(device)
+    model, input_size = my_models.initialize_model(
+        config['model']['arch'], num_classes=2)
+    img, _ = training_set[0]
+    if input_size != img.size()[1]:
+        print(f"ERROR: your image size ({img.size()[1]}) does not match the model you're trying to use ({input_size}).")
+        exit(1)
 
     # save model summary to file
     old_stdout = sys.stdout # save original stdout
     model_summary = open(config['output']['model_summary_file'],"w")
     sys.stdout = model_summary
-
     print(model, "\n\n\n")
-
-    img, _ = training_set[0]
-    summary(model, img.size)
-
+    summary(model, tuple(img.size())) # <-- keras-like summary from torchsummary module
     model_summary.close()
     
     # 4. Train model

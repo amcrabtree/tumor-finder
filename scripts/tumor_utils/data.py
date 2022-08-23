@@ -25,15 +25,8 @@ class TiledDataset(Dataset):
         self.label_dict = {0:'normal', 1:'tumor'}
         self.tile_files = self.list_tile_files()
         self.all_labels = self.list_labels()
-        self.target_transform = transforms.Lambda(lambda y: torch.tensor(y, dtype=torch.float))
-        self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.CenterCrop(224),
-            transforms.ConvertImageDtype(torch.float), 
-            transforms.Normalize(
-                mean=[0.48235, 0.45882, 0.40784], 
-                std=[0.00392156862745098, 0.00392156862745098, 0.00392156862745098]),
-        ])
+        self.transform = transform
+        self.target_transform = target_transform
         
     def list_tile_files(self)->list:
         """ Returns list of tile filenames in Dataset
@@ -104,15 +97,8 @@ class PCam(Dataset):
         self.label_dict = {0:'normal', 1:'tumor'}
         self.tile_files = self.list_tile_files()
         self.all_labels = self.list_labels()
-        self.target_transform = transforms.Lambda(lambda y: torch.tensor(y, dtype=torch.float))
-        self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            #transforms.Pad(64), # should make input image = 224x224
-            transforms.ConvertImageDtype(torch.float), 
-            transforms.Normalize(
-                mean=[0.48235, 0.45882, 0.40784], 
-                std=[0.00392156862745098, 0.00392156862745098, 0.00392156862745098]),
-                ])
+        self.transform = transform
+        self.target_transform = target_transform
     
     def list_tile_files(self)->list:
         """ Returns list of tile filenames in Dataset
