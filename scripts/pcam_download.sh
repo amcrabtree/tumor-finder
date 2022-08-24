@@ -43,6 +43,9 @@ wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17
 wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17/training/center_4/patient_080.zip
 wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17/training/center_4/patient_081.zip
 wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17/training/center_4/patient_088.zip
+wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17/training/center_4/patient_092.zip
+wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17/training/center_4/patient_096.zip
+wget https://ftp.cngb.org/pub/gigadb/pub/10.5524/100001_101000/100439/CAMELYON17/training/center_4/patient_099.zip
 
 # unzip WSI folders and delete WSIs which are not annotated
 unzip patient_009.zip
@@ -95,6 +98,12 @@ unzip patient_081.zip
 rm patient_081_node_0.tif patient_081_node_1.tif patient_081_node_2.tif patient_081_node_3.tif 
 unzip patient_088.zip
 rm patient_088_node_0.tif patient_088_node_2.tif patient_088_node_3.tif patient_088_node_4.tif 
+unzip patient_092.zip
+rm patient_092_node_0.tif patient_092_node_2.tif patient_092_node_3.tif patient_092_node_4.tif 
+unzip patient_096.zip
+rm patient_096_node_1.tif patient_096_node_2.tif patient_096_node_3.tif patient_096_node_4.tif 
+unzip patient_099.zip
+rm patient_099_node_0.tif patient_099_node_1.tif patient_099_node_2.tif patient_099_node_3.tif 
 
 # move corresponding xml files into folder with WSIs
 for file in *node*.tif; do cp lesion_annotations_training/$(basename $file .tif).xml .; done
