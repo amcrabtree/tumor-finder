@@ -31,11 +31,11 @@
             "lr": 0.0001
         }
     },
-    "lr_scheduler": {
-        "type": "",
-        "args": {}
+    "tester": {
+        "metrics": ["accuracy", "precision", "recall", "f1", "auc"]
     },
     "output": {
+        "image_sample": "image_sample.jpg",
         "config_outfile": "final_config.json",
         "model_summary_file": "model.log",
         "final_model": "final_model.pt",
@@ -44,7 +44,8 @@
         "stats_file": "stats.csv",
         "loss_plot": "plot_loss.png",
         "acc_plot": "plot_acc.png",
-        "image_sample": "image_sample.jpg"
+        "test_log": "test.log",
+        "metrics_file": "test_metrics.csv"
     },
     "notes": {}
 }
