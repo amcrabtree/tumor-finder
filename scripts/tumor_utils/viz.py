@@ -91,15 +91,18 @@ def confusion_plot(matrix:np.ndarray, outfile:str=""):
     print('Number of Incorrect Predictions:',np.fliplr(matrix).trace())
     print('Number of Total Predictions:', np.sum(matrix))
 
-def roc_plot(df:pd.DataFrame, outfile:str=""):
+def roc_plot(df:pd.DataFrame, auroc=0, outfile:str=""):
     """ Plot ROC curve. 
+    Args:
+        df: pandas df with the columns = [model,fpr,tpr,thresholds]
     """
+    title = "ROC Curve" if auroc==0 else "ROC Curve (AUC={})".format(auroc)
     p = (ggplot(df) +
         aes(x='fpr', y='tpr') + 
-        geom_line(aes(color='darkblue')) + 
-        geom_area(aes(color='lightblue')) + 
-        theme_classic() + 
-        labs(title="ROC Curve", x="False Positive Rate (specificity)", y="True Positive Rate (sensitivity)") + 
+        #geom_area(fill="#69b3a2", alpha=0.4) + # for some reason, looks messed up
+        geom_line(color="#69b3a2", size=2) +
+        theme_classic() +
+        labs(title=title, x="False Positive Rate (specificity)", y="True Positive Rate (sensitivity)") + 
         ylim(0, 1) + 
         xlim(0, 1)
     )
@@ -109,6 +112,6 @@ def roc_plot(df:pd.DataFrame, outfile:str=""):
         plot=p,
         device='png',
         dpi=300,
-        height=3,
+        height=4,
         width=6,
         verbose = False)
