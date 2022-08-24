@@ -1,5 +1,5 @@
 {
-    "run_name": "PCam_NScene",
+    "run_name": "PCam_vgg16",
     "run_dir": "./output", 
     "wsi_dir": "./data/wsi",
     "tile_dir": "./data/tiles",
@@ -17,7 +17,7 @@
         }
     },
     "model": {
-        "arch": "NaturalSceneClassification",
+        "arch": "vgg16",
         "args": {}
     },
     "loss": "CrossEntropyLoss",
@@ -31,9 +31,6 @@
             "lr": 0.0001
         }
     },
-    "tester": {
-        "metrics": ["accuracy", "precision", "recall", "f1", "auc"]
-    },
     "output": {
         "image_sample": "image_sample.jpg",
         "config_outfile": "final_config.json",
@@ -46,7 +43,9 @@
         "acc_plot": "plot_acc.png",
         "test_log": "test.log",
         "metrics_file": "test_metrics.csv",
-        "confusion_plot": "plot_confusion.png"
+        "confusion_plot": "plot_confusion.png",
+        "roc_file": "roc_file.csv",
+        "roc_plot": "plot_roc.png"
     },
     "notes": {}
 }
