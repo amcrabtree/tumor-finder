@@ -45,7 +45,8 @@
         "loss_plot": "plot_loss.png",
         "acc_plot": "plot_acc.png",
         "test_log": "test.log",
-        "metrics_file": "test_metrics.csv"
+        "metrics_file": "test_metrics.csv",
+        "confusion_plot": "plot_confusion.png"
     },
     "notes": {}
 }

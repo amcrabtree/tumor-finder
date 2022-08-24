@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchmetrics as TM
 import pandas as pd
 import numpy as np
-from tumor_utils.viz import confusion_plot
+from tumor_utils.viz import confusion_plot, roc_plot
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -45,19 +45,24 @@ class Tester():
         torch.set_grad_enabled(False) 
 
         conf_metric = TM.ConfusionMatrix(num_classes=2)
+        roc = TM.ROC(pos_label=1)
+        
 
         for step, (images, labels) in enumerate(test_loader):
             images, labels = [images.to(device), labels.to(device)]
             outputs = self.model(images)
 
-            y_pred = outputs.argmax(-1).cpu()
-            y_tgt = labels.long().cpu()
-            confusion = conf_metric(y_pred, y_tgt)
+            pred = outputs.argmax(-1).cpu()
+            target = labels.long().cpu()
+            confusion = conf_metric(pred, target)
+            fpr, tpr, thresholds = roc(pred, target)
 
         ## METRICS
         self.confusion = conf_metric.compute().cpu().numpy()
         print("Confusion matrix:\n", self.confusion)
-        [tp,fp],[fn,tn] = self.confusion
+        self.fpr, self.tpr, self.thresholds = roc.compute().cpu().numpy()
+        print(f"ROC data:\n{self.fpr}\n{self.tpr}\n{self.thresholds}")
+        [tn,fp],[fn,tp] = self.confusion
         self.acc = (tp+tn)/(tp+tn+fp+fn)
         self.precision = tp / (tp+fp)
         self.recall = tp / (tp+fn)
@@ -66,22 +71,25 @@ class Tester():
         ## save metrics to stats dict
         self.stats_list.append( 
             {'model':self.model.__class__.__name__,
-            'phase':'test',
             'tp':tp,
             'fp':fp,
             'fn':fn,
             'tn':tn,
-            'acc':self.acc,
-            'f1':self.f1,
-            'precision':self.precision,
-            'recall':self.recall
+            'acc':self.acc.round(4),
+            'f1':self.f1.round(4),
+            'precision':self.precision.round(4),
+            'recall':self.recall.round(4)
             })
 
-        ## save stats info to file
+        ## save stats info to files
         stats_df = pd.DataFrame.from_dict(self.stats_list)
         stats_df.to_csv(self.config['output']['metrics_file'], index=False)
 
-        ## save confusion plot
+        roc_df = pd.DataFrame ({'fpr':self.fpr,'tpr':self.tpr,'thresholds':self.thresholds})
+        roc_df.to_csv(self.config['output']['roc_file'], index=False)
+
+        ## save plots
         confusion_plot(
             matrix=self.confusion, 
             outfile=self.config['output']['confusion_plot'])
+        roc_plot(roc_df, outfile=self.config['output']['roc_plot'])
