@@ -93,7 +93,6 @@ class Trainer():
             'epoch_acc':epoch_acc
             })
         print(f'val Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
-        #self.writer.add_scalar('val_loss', avg_loss,  self.current_epoch)
         return epoch_loss
 
     def train(self, train_loader, val_loader):
