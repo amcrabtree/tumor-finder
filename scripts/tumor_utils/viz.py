@@ -14,17 +14,22 @@ def ViewNpyImg(npy_file:str):
     plt.imshow(tile_np, interpolation='nearest')
     plt.show()
 
-def confusion_plot(Y_labels: np.ndarray, Y_pred: np.ndarray):
+def confusion_plot(matrix:np.ndarray, outfile:str=""):
     '''Plot confusion matrix for multiclass classification.'''
-    matrix = confusion_matrix(Y_labels, Y_pred)
     # Plot non-normalized confusion matrix
-    sns.heatmap(matrix, annot=True, fmt="d")
+    class_labels = ['normal','tumor']
+    sns.heatmap(
+        matrix, annot=True, fmt="d", cmap="Blues", 
+        xticklabels=class_labels, yticklabels=class_labels)
     plt.title('Confusion Matrix')
     plt.xlabel('Prediction')
     plt.ylabel('Ground Truth')
     plt.show()
-    print('Number of Incorrect Guesses:',np.sum(Y_labels!=Y_pred))
-    print('Number of Total Predictions:', np.shape(Y_labels)[0])
+    filename = "plot_confusion.png" if outfile == "" else outfile
+    plt.savefig(filename)
+    print('Number of Correct Predictions:',np.trace(matrix))
+    print('Number of Incorrect Predictions:',np.fliplr(matrix).trace())
+    print('Number of Total Predictions:', np.sum(matrix))
 
 def print_sample_imgs(dataset:Dataset, outfile:str):
     """ Print to file sample images and labels. 

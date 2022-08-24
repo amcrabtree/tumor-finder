@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torchmetrics as TM
 import pandas as pd
+import numpy as np
+from tumor_utils.viz import confusion_plot
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -15,7 +17,11 @@ class Tester():
         self.metrics = list(config['tester']['metrics'])
         self.criterion = getattr(torch.nn.modules.loss, config['loss'])()
         self.stats_list = []
-        self.test_acc = 0.0
+        self.acc = 0.0
+        self.f1 = 0.0
+        self.precision = 0.0
+        self.recall = 0.0
+        self.confusion = np.zeros([2,2])
 
     def accuracy_fn(self, inputs, labels):
         """ Returns batch accuracy. 
@@ -36,43 +42,46 @@ class Tester():
         return accuracy
 
     def test(self, test_loader):
-        since = time.time() # track time
-        with torch.no_grad():
-            torch.set_grad_enabled(False)
-            accuracy = 0.0
-            f1_score = 0.0
-            auroc = 0
+        torch.set_grad_enabled(False) 
 
-            for step, (images, labels) in enumerate(test_loader):
-                images, labels = [images.to(device), labels.to(device)]
-                outputs = self.model(images)
+        conf_metric = TM.ConfusionMatrix(num_classes=2)
 
-                y_pred = outputs.argmax(-1).cpu()
-                #y_pred = outputs
-                y_tgt = labels.long().cpu()
+        for step, (images, labels) in enumerate(test_loader):
+            images, labels = [images.to(device), labels.to(device)]
+            outputs = self.model(images)
 
-                accuracy = TM.Accuracy()(y_pred, y_tgt)
-                f1_score = TM.F1Score()(y_pred, y_tgt)
-                prere = TM.functional.precision_recall(y_pred, y_tgt)
-                print(f'Batch: {step} Acc: {accuracy:.4f} f1_score: {f1_score:.4f} auroc: {prere}')
+            y_pred = outputs.argmax(-1).cpu()
+            y_tgt = labels.long().cpu()
+            confusion = conf_metric(y_pred, y_tgt)
 
-            time_elapsed = time.time() - since
-            print(f'Testing complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+        ## METRICS
+        self.confusion = conf_metric.compute().cpu().numpy()
+        print("Confusion matrix:\n", self.confusion)
+        [tp,fp],[fn,tn] = self.confusion
+        self.acc = (tp+tn)/(tp+tn+fp+fn)
+        self.precision = tp / (tp+fp)
+        self.recall = tp / (tp+fn)
+        self.f1 = (2 * self.precision * self.recall) / (self.precision + self.recall)
+        
+        ## save metrics to stats dict
+        self.stats_list.append( 
+            {'model':self.model.__class__.__name__,
+            'phase':'test',
+            'tp':tp,
+            'fp':fp,
+            'fn':fn,
+            'tn':tn,
+            'acc':self.acc,
+            'f1':self.f1,
+            'precision':self.precision,
+            'recall':self.recall
+            })
 
-"""
-            ## METRICS
-            self.test_acc = running_accuracy / len(test_loader)
-            self.precision = FM.precision_recall(images, labels, average='micro')
+        ## save stats info to file
+        stats_df = pd.DataFrame.from_dict(self.stats_list)
+        stats_df.to_csv(self.config['output']['metrics_file'], index=False)
 
-            ## save metrics to stats dict
-            self.stats_list.append(  # save loss info in stats_list attribute
-                {'model':self.model.__class__.__name__,
-                'phase':'test',
-                'acc':self.test_acc,
-                })
-            print(f'test Acc: {self.test_acc:.4f}')
-
-            ## save stats info to file
-            stats_df = pd.DataFrame.from_dict(self.stats_list)
-            stats_df.to_csv(self.config['output']['metrics_file'], index=False)
-"""
+        ## save confusion plot
+        confusion_plot(
+            matrix=self.confusion, 
+            outfile=self.config['output']['confusion_plot'])
