@@ -11,11 +11,10 @@ import json
 import shutil
 from tumor_utils.train import Trainer,salute # custom trainer class and print msg
 from tumor_utils.viz import print_sample_imgs # print sample images function
+from tumor_utils import my_models, data, tformer
 import torch
 from torch.utils.data import DataLoader
 from torchsummary import summary
-#from tumor_utils.models import vgg16_mod,NaturalSceneClassification # custom models
-from tumor_utils import my_models, data, tformer
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #torch.backends.cudnn.benchmark = True # turn on autotuner for increase in overall speed
@@ -40,25 +39,24 @@ if __name__=='__main__':
     shutil.copyfile(sys.argv[1], config['output']['config_outfile'])
 
     # 1. import datasets with custom Dataset class
-    #training_set = config.parse.init_obj('data_loader', eval(config['data_loader']['type']), optimizer)
+    image_transform = tformer.custom_tfm(
+            data='image', model=config['model']['arch'], input_size=256)
+    label_transform = tformer.custom_tfm(
+            data='label', model=config['model']['arch'], input_size=256)
+    # define and transform datasets 
     training_set = getattr(data, config['data_loader']['type'])(
         set_dir = os.path.join(
             config['data_loader']['args']['data_dir'], 
             config['data_loader']['args']['train_subd']),
-        transform = tformer.custom_tfm(
-            model=config['model']['arch'], data='image', input_size=256),
-        target_transform = tformer.custom_tfm(
-            model=config['model']['arch'], data='label', input_size=256)
-            )
+        transform = image_transform,
+        target_transform = label_transform)
     val_set = getattr(data, config['data_loader']['type'])(
         set_dir = os.path.join(
             config['data_loader']['args']['data_dir'], 
             config['data_loader']['args']['val_subd']),
-        transform = tformer.custom_tfm(
-            model=config['model']['arch'], data='image', input_size=256),
-        target_transform = tformer.custom_tfm(
-            model=config['model']['arch'], data='label', input_size=256)
-            )
+        transform = image_transform,
+        target_transform = label_transform)
+
     print_sample_imgs(val_set, outfile=config['output']['image_sample'])
     
     # 2. load datasets into dataloaders
@@ -74,7 +72,7 @@ if __name__=='__main__':
         batch_size = config['data_loader']['args']['batch_size'], 
         num_workers = 1, 
         pin_memory = True,
-        shuffle = config['data_loader']['args']['shuffle'], 
+        shuffle = False, 
         drop_last = True)
 
     # 3. Load Model
