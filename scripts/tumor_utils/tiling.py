@@ -22,9 +22,7 @@ class AnnWSI (object):
        
     Methods:
        constructor(v0): Set filenames of WSI (wsi_file)and annotations (ann_file).
-       Resize(level, ratio, final_h, final_w): Print an example image from WSI.
-       SaveOverlay(outfile): Check the appearance of how the annotation looks on a thumbnail image.
-       StartTiling(outdir, size): Saves jpg images of tiles within descriptive (labeled) folders.
+       load_roi: Parses annotation/ROI file into list of tumor ROI coordinates.
 
     Usage:
     >>> ann_wsi = AnnWSI (wsi_file, ann_file)
@@ -35,9 +33,9 @@ class AnnWSI (object):
         self.roi_file = roi_file
         self.uuid = str(uuid.uuid1()).split('-')[0] # returns a short, unique (non-PHI) id for wsi 
         self.wsi = openslide.OpenSlide (wsi_file)
-        self.tumors = self.LoadROIs()
+        self.tumors = self.load_roi()
 
-    def LoadROIs (self) -> list:
+    def load_roi (self) -> list:
         """ Parses annotation/ROI file into list of tumor ROI coordinates. """
 
         # define ROI filename and extension
@@ -127,12 +125,12 @@ class Tile (AnnWSI):
         self.id_coord = np.array(id_coord)
         self.size = size
         self.level = level
-        self.points = self.ReturnPoints()
-        self.label = self.TileLabel()
-        self.np_img = self.TileImg()
-        self.blank = self.IsBlank()
+        self.points = self.get_points()
+        self.label = self.get_tile_label()
+        self.np_img = self.get_tile_img()
+        self.blank = self.is_blank_tile()
 
-    def ReturnPoints(self) -> np.ndarray:
+    def get_points(self) -> np.ndarray:
         """ Returns level 0 xy coordinates of tile. """
 
         # calculate tile size at level zero
@@ -148,7 +146,7 @@ class Tile (AnnWSI):
         points = np.asarray(coords_list).flatten().reshape(4,2)
         return points 
 
-    def TileLabel(self) -> str:
+    def get_tile_label(self) -> str:
         """ Returns label for tile depending if it's within any ROI. """
 
         # save coordinates as matplotlib Path object
@@ -167,7 +165,7 @@ class Tile (AnnWSI):
             label="margin" 
         return label
 
-    def TileImg(self) -> np.ndarray:
+    def get_tile_img(self) -> np.ndarray:
         """ Returns an image in a numpy array. """
         opens_img = self.ann_obj.wsi.read_region(
             (self.id_coord[0], self.id_coord[1]), 
@@ -177,7 +175,7 @@ class Tile (AnnWSI):
         np_img = np.array(opens_img)
         return np_img
 
-    def IsBlank(self) -> bool:
+    def is_blank_tile(self) -> bool:
         """ Returns True if tile is blank. """
 
         is_blank=False # assume tile is not blank (default)
@@ -252,7 +250,7 @@ def generate_tiles(ann_obj:AnnWSI, outdir:str,
 
 
 
-def SaveOverlay(ann_obj:AnnWSI, mode:str, value, outfile:str=""):
+def save_overlay(ann_obj:AnnWSI, mode:str, value, outfile:str=""):
     """ 
     Create image of WSI overlaid with annotations. 
     Adjust size with mode and value.
