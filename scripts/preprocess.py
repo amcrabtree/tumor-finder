@@ -48,7 +48,7 @@ if __name__ == "__main__":
                 level=0)
     
     # balance 2 classes and move unneeded files to 'excess' directory
-    tumor_utils.mv_tiles.balance_classes(TILE_DIR, sm_class='tumor', lg_class='normal', ratio=0.5) 
+    tumor_utils.mv_tiles.balance_classes(TILE_DIR, class_a='tumor', class_b='normal', ratio=1) 
     # subdivide tiles into training, validation, and testing directories
     tumor_utils.mv_tiles.split_tile_dirs(TILE_DIR, ratio=0.2)
     # remove margin tile folders
