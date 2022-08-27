@@ -7,6 +7,7 @@ from tumor_utils.tiling import AnnWSI
 import tumor_utils.tiling
 import tumor_utils.mv_tiles
 import json
+from tumor_utils.wsi import WSI # custom WSI class
 
 """
 Generates tiles for all WSIs in WSI folder.
@@ -33,16 +34,13 @@ if __name__ == "__main__":
         if wsi_ext in ext_list:
 
             # create annotated WSI object
-            ann_wsi = AnnWSI (wsi_file)
-
+            ann_wsi = WSI(wsi_file)
             # check overlay of annotations on WSI
-            # thumbnail_file = os.path.splitext(wsi_file)[0]+"_thumb.jpg"
-            # tumor_utils.tiling.SaveOverlay(
-            #     ann_wsi, mode="height", value=10000) 
+            # WSI.save_overlay(ann_wsi, mode="height", value=10000) 
 
             # generate tiles
             print(f"\nTiling file: {os.path.basename(wsi_file)}")
-            tumor_utils.tiling.generate_tiles(
+            WSI.generate_tiles(
                 ann_wsi, outdir=TILE_DIR,
                 tile_size=256,
                 level=0)
