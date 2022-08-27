@@ -20,8 +20,6 @@ class TiledDataset(Dataset):
         """ Constructor method
         """
         self.subset_dir = set_dir
-        self.transform = None
-        self.target_transform = None
         self.label_dict = {0:'normal', 1:'tumor'}
         self.tile_files = self.list_tile_files()
         self.all_labels = self.list_labels()
@@ -144,3 +142,38 @@ class PCam(Dataset):
         if self.target_transform: label_num = self.target_transform(label_num)
 
         return image, label_num
+
+class UnlabeledImgData(Dataset):
+    """ Generates PyTorch Dataset object for model training
+
+    :param subset_dir: Directory with tiles in labeled subfolders
+    :type subset_dir: str
+    :param transform: Optional transform to be applied to the dataset, defaults to None. 
+    :type transform: torchvision.transforms, optional
+
+    """
+    def __init__(self, tile_file_list, transform=None):
+        """ Constructor method
+        """
+        self.tile_files = tile_file_list
+        self.transform = transform
+
+    def __len__(self):
+        """ Returns number of observations (images/labels) 
+        """
+        return len(self.tile_files)
+
+    def __getitem__(self, idx):
+        """ Returns a numpy image for a given index, transformed
+        if specified. 
+
+        Args:
+            idx: index of the image in the file list
+        """
+        # return image as numpy array
+        img_path = self.tile_files[idx]
+        image = Image.open(img_path)
+        image = np.array(image)
+        # transform image if specified
+        if self.transform: image = self.transform(image)
+        return image
