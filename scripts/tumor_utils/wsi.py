@@ -8,7 +8,7 @@ import openslide
 import glob
 import cv2
 import matplotlib.pyplot as plt
-from tile import Tile # custom Tile class
+
 
 class WSI (object):
     """
@@ -152,13 +152,11 @@ class WSI (object):
             plt.savefig(outfile, dpi=100)
             print(f"\n\tSaved overlay to: {outfile}\n")
 
-    def generate_tiles(
-        self, outdir:str, tile_size:int, level:int, x_range:list=[], y_range:list=[]):
-        """ Iteratively generates and saves tiles over a specified area of a WSI.
+    def get_tile_coords(
+        self, tile_size:int, level:int, x_range:list=[], y_range:list=[])->np.ndarray:
+        """ Iteratively generates tiles coordinates over a specified area of a WSI.
 
         Args: 
-            outdir: output directory to save tiles to
-            wsi_obj: the WSI represented as an WSI object
             tile_size: the tile pixel dimensions (can only be square tiles)
             level: desired level of output tile images (0 is highest resolution)
 
@@ -167,8 +165,8 @@ class WSI (object):
             y_range: a 2-element list with [start, stop] coordinates of desired tiling area (default is WSI)
         
         Usage:
-        >>> generate_tiles(my_wsi, outdir=TILE_DIR, tile_size=256, level=0)
-        >>> generate_tiles(my_wsi, outdir=TILE_DIR, tile_size=256, level=0,
+        >>> get_tile_coords(tile_size=256, level=0)
+        >>> get_tile_coords(tile_size=256, level=0,
             ... x_range=[13000,16000], y_range=[4000,8000])
         """
         # If no ranges are specified, tile whole slide 
@@ -177,15 +175,10 @@ class WSI (object):
             x_range = [0, wsi_w]
             y_range = [0, wsi_h]
 
-        # Generate tiles
-        n=1 # <- tile counter
+        # Generate tile coords
+        tile_coord_list = []
         base_tile_size = int(tile_size * self.wsi.level_downsamples[level])
         for x in range(x_range[0], x_range[1]-base_tile_size, base_tile_size):
             for y in range(y_range[0], y_range[1]-base_tile_size, base_tile_size):
-                # generate tile object and extract required info
-                current_tile = Tile(self, [x,y], 256, level)
-                # save all non-blank tiles
-                if current_tile.blank == False:
-                    current_tile.save_tile(outdir, n, ext=".png")
-                    n += 1 
-        print(f"\n\tGenerated {n-1} tiles:\n")
+                tile_coord_list.append(np.array([x,y]))
+        return np.asarray(tile_coord_list)

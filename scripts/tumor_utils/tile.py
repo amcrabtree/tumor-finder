@@ -2,8 +2,7 @@ import os
 import matplotlib
 from PIL import Image
 import numpy as np
-import glob
-from wsi import WSI # custom WSI class
+from tumor_utils.wsi import WSI # custom WSI class
 
 class Tile (WSI):
     """ 
@@ -29,11 +28,13 @@ class Tile (WSI):
     >>> new_tile = Tile(unlabeled_wsi, id_coord=[4600,15000], size=256, level=0)
     """
 
-    def __init__(self, wsi_obj:WSI, id_coord:list, size:int, level:int=0): 
+    def __init__(
+        self, wsi_obj:WSI, id_coord:list, size:int, level:int=0, label:str=""): 
         self.wsi_obj = wsi_obj
         self.id_coord = np.array(id_coord)
         self.size = size
         self.level = level
+        self.label = label
         self.np_img = self.get_np_img()
         self.blank = self.is_blank_tile()
         if wsi_obj.roi_file != "":
@@ -102,10 +103,10 @@ class Tile (WSI):
         # if tiles are mostly white (in the case of normal WSI blank space)
         ratio_blackish = np.count_nonzero(lum_img < 50) / lum_img.size
         if ratio_blackish > 0.8: is_blank=True 
-        if is_blank: self.label = "blank"
+        #if is_blank: self.label = "blank"
         return is_blank
 
-    def save_tile(self, outdir:str="", n:int=-1, ext=".png"):
+    def save_tile(self, outdir:str="", n=-1, ext=".png", blanks:bool=False):
         """ Save tile to file
         Options:
             outdir: output directory for tile image (default is WSI dir)
@@ -114,12 +115,15 @@ class Tile (WSI):
 
         """
         # handle options
+        if self.blank==True and blanks==False: return # don't save if blank
         if outdir=="": outdir=self.wsi_obj.wsi_file
         if n==-1: n=='{}-{}'.format(self.id_coord[0],self.id_coord[1])
-        # save tile image to appropriate directory
+        # store output file path
         wsi_name=os.path.basename(self.wsi_obj.wsi_file).split(".")[0]
-        filename = f"wsi_{wsi_name}_tile_{n}_label_{self.label}"
+        filename = f"wsi_{wsi_name}_tile_{n}"
+        if self.label != "": filename = filename+f"_label_{self.label}"
         outfile = os.path.join(outdir, filename)
+        # save tile image, depending on extension
         if ext==".np":
             np.save(outfile, self.np_img)
         elif ext==(".png" or ".jpg" or ".jpeg"):

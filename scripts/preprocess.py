@@ -8,6 +8,7 @@ import tumor_utils.tiling
 import tumor_utils.mv_tiles
 import json
 from tumor_utils.wsi import WSI # custom WSI class
+from tumor_utils.tiling import tile_wsi_list # custom tiling function
 
 """
 Generates tiles for all WSIs in WSI folder.
@@ -27,23 +28,16 @@ if __name__ == "__main__":
             print(f"Directory does not exist! Try again. \n\t{dir}")
             exit(1)
     
+    # make list of WSI files
     for wsi_file in glob.glob(WSI_DIR+"/*"):
-
         ext_list = ['.ndpi', '.tiff', '.tif']
         wsi_ext = os.path.splitext(wsi_file)[1]
+        wsi_file_list = []
         if wsi_ext in ext_list:
+            wsi_file_list.append(wsi_file)
 
-            # create annotated WSI object
-            ann_wsi = WSI(wsi_file)
-            # check overlay of annotations on WSI
-            # WSI.save_overlay(ann_wsi, mode="height", value=10000) 
-
-            # generate tiles
-            print(f"\nTiling file: {os.path.basename(wsi_file)}")
-            WSI.generate_tiles(
-                ann_wsi, outdir=TILE_DIR,
-                tile_size=256,
-                level=0)
+    # generate tiles
+    tile_wsi_list(wsi_file_list, TILE_DIR, tile_size=256, level=0)
     
     # balance 2 classes and move unneeded files to 'excess' directory
     tumor_utils.mv_tiles.balance_classes(TILE_DIR, class_a='tumor', class_b='normal', ratio=1) 
