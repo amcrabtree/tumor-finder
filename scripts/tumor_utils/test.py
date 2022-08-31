@@ -1,6 +1,5 @@
-import time
+
 import torch
-import torch.nn as nn
 import torchmetrics as TM
 import pandas as pd
 import numpy as np
@@ -32,7 +31,6 @@ class Tester():
         for step, (images, labels) in enumerate(test_loader):
             images, labels = [images.to(device), labels.to(device)]
             outputs = self.model(images)
-
             preds = outputs.argmax(-1).cpu()
             probs = torch.nn.functional.softmax(outputs, dim=1)[:, 1].cpu()
             target = labels.long().cpu()

@@ -3,11 +3,14 @@ import os
 import sys
 import numpy as np
 import pandas as pd
+from PIL import Image
 import json
 import torch
 from tumor_utils import tformer # custom class for loading & transforming data
 from tumor_utils.data import UnlabeledImgData # custom class for unlabeled images
 import glob
+from torchvision import transforms
+from torch.utils.data import DataLoader
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -36,11 +39,11 @@ class TumorPredWSI():
         self.wsi_file = wsi_file
         self.tile_dir = tile_dir
         self.model_file = model_file
+        self.label_dict = {0:'normal', 1:'tumor'}
         #self.config = self.parse_config()
         self.tile_files = self.list_tile_files()
-        self.dataset = self.load_data()
+        self.dataloader = self.load_data()
         self.pred_np = self.make_preds()
-        self.label_dict = {0:'normal', 1:'tumor'}
         self.pred_labels = self.interpret_preds()
         self.pred_count_dict = self.count_preds()
 
@@ -59,19 +62,27 @@ class TumorPredWSI():
         """ Returns list of tile filenames in Dataset
         """
         wsi_name=os.path.basename(self.wsi_file).split(".")[0]
-        pattern=os.path.join(self.tile_dir, f"**/*{wsi_name}*.*")
+        pattern=os.path.join(self.tile_dir, f"*{wsi_name}*.*")
         file_list = glob.glob(pattern)
         return file_list
 
     def load_data(self):
         """ Returns pytorch DataLoader object. """
-        image_transform = tformer.custom_tfm(
-            data='image', model= "vgg16", input_size=256)
+        image_transform = tformer.custom_tfm(data='image', model= "vgg16", input_size=256)
         # define and transform images 
         dataset = UnlabeledImgData(
             self.tile_files,
             transform = image_transform)
-        return dataset
+        #print("torch size:", dataset[0].size())
+        dataloader = DataLoader(
+            dataset, 
+            batch_size = 128, 
+            num_workers = 1, 
+            pin_memory = True,
+            shuffle = False, 
+            drop_last = True)
+
+        return dataloader
 
     def make_preds(self):
         """ Makes predictions of whether tiles are tumor or normal. 
@@ -82,16 +93,24 @@ class TumorPredWSI():
         model.eval() # puts model into inference mode
         
         torch.set_grad_enabled(False) 
-        pred_list=[]
-        for image in enumerate(self.dataset):
-            image = image.to(device)
-            output = self.model(image)
-            pred = output.argmax(-1).cpu().numpy()
-            prob = torch.nn.functional.softmax(output, dim=1)[:, 1].cpu()
-            print(f'pred: {pred} prob: {prob}')
-            pred_list.append(pred)
-        pred_np = np.asarray(pred_list)
-        return pred_np
+        img_path = "./data/tiles/test/normal/wsi_patient_073_node_1_tile_29710_label_normal.png"
+        image = Image.open(img_path)
+        image = np.array(image)
+        #transform = tformer.custom_tfm(data='image', model= "vgg16", input_size=256)
+        transform = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.CenterCrop(224),
+                    transforms.ConvertImageDtype(torch.float), 
+                    transforms.Normalize(
+                        mean=[0.48235, 0.45882, 0.40784], 
+                        std=[0.00392156862745098, 0.00392156862745098, 0.00392156862745098]),
+                ])
+        image = transform(image)
+        image = image.to(device)
+        outputs = model(image)
+        pred = outputs.argmax(-1).cpu()
+        print("pred:", pred)
+        return pred
     
     def interpret_preds(self)->list:
         """ Convert prediction categories to labels.

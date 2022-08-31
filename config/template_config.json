@@ -47,5 +47,13 @@
         "roc_file": "roc_file.csv",
         "roc_plot": "plot_roc.png"
     },
+    "predict": {
+        "wsi_dir": "/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi",
+        "wsi_ext": ".tif",
+        "tile_dir": "/projects/bgmp/acrabtre/tumor-finder/data/tiles/prod",
+        "model_file": "/projects/bgmp/acrabtre/tumor-finder/output/WSI_VGG_Adam/running_model.pt",
+        "tiling_needed": "False",
+        "output": "pred_stats.csv"
+    },
     "notes": {}
 }
