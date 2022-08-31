@@ -32,13 +32,15 @@ class Tile (WSI):
         self, wsi_obj:WSI, id_coord:list, size:int, level:int=0, label:str=""): 
         self.wsi_obj = wsi_obj
         self.id_coord = np.array(id_coord)
+        self.points = self.get_corners()
+        self.centroid = self.get_centroid()
         self.size = size
         self.level = level
         self.label = label
         self.np_img = self.get_np_img()
         self.blank = self.is_blank_tile()
         if wsi_obj.roi_file != "":
-            self.points = self.get_corners()
+            
             self.label = self.get_tile_label()
 
     def get_corners(self) -> np.ndarray:
@@ -56,6 +58,14 @@ class Tile (WSI):
             ]
         points = np.asarray(coords_list).flatten().reshape(4,2)
         return points 
+    
+    def get_centroid(self) -> np.ndarray:
+        """ Returns level 0 xy coordinates of tile centroid. """
+        length = self.points.shape[0]
+        sum_x = np.sum(self.points[:, 0])
+        sum_y = np.sum(self.points[:, 1])
+        centroid = np.array([round(sum_x/length), round(sum_y/length)])
+        return centroid
 
     def get_tile_label(self) -> str:
         """ Returns label for tile depending if it's within any ROI. """
@@ -121,7 +131,10 @@ class Tile (WSI):
         # store output file path
         wsi_name=os.path.basename(self.wsi_obj.wsi_file).split(".")[0]
         filename = f"wsi_{wsi_name}_tile_{n}"
-        if self.label != "": filename = filename+f"_label_{self.label}"
+        if self.label != "": 
+            filename = filename+f"_label_{self.label}"
+        else:
+            filename = filename+f"_loc_{self.centroid[0]}-{self.centroid[1]}"
         outfile = os.path.join(outdir, filename)
         # save tile image, depending on extension
         if ext==".np":
