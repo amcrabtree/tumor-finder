@@ -4,12 +4,13 @@ import torch
 from tumor_utils import tformer # custom class for loading & transforming data
 from tumor_utils.data import UnlabeledImgData # custom class for unlabeled images
 from tumor_utils.tiling import tile_wsi_list # custom tiling function
-from tumor_utils.prediction import TumorPredWSI # custom tumor prediction class
 from tumor_utils.pred import Predictor # custom tumor prediction class
-from torch.utils.data import Dataset, DataLoader
+from tumor_utils.viz import save_heatmap # make heatmaps for WSIs
+from torch.utils.data import DataLoader
 import os
 import glob
 import numpy as np
+import re
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -41,20 +42,23 @@ def count_preds(pred_labels:list)->tuple:
 
 if __name__=='__main__':
 
-    #wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga"
-    #wsi_ext=".svs" # TCGA files will be ".svs"
-    wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi"
-    wsi_ext=".tif" 
+    wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga"
+    wsi_ext=".svs" # TCGA files will be ".svs"
+    #wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi"
+    #wsi_ext=".tif" 
 
-    #meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga/tcga_meta.txt"
-    meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi/meta_prod.txt"
+    meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga/tcga_meta.txt"
+    #meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi/meta_prod.txt"
     
-    #tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/tcga"
-    tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/prod"
+    tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/tcga"
+    #tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/prod"
 
     model_file="/projects/bgmp/acrabtre/tumor-finder/output/WSI_VGG_Adam/running_model.pt"
     tiling=True
-    predict_csv="./pred_stats.csv"
+    
+    # Output files:
+    predict_csv="./output/pred_stats_short.csv"
+    tumor_coords="./output/tumor_coords.csv"
 
     # import metadata as pandas df and save file list
     meta_df = pd.read_csv(meta_file, sep='\t')
@@ -87,10 +91,10 @@ if __name__=='__main__':
             num_workers = 1, 
             pin_memory = True,
             shuffle = False, 
-            drop_last = True)
+            drop_last = False)
 
         # 4. Make predictions (perform forward pass using test images)
-        print("\nPredicting classes ...\n")
+        print(f'\nPredicting classes for {wsi_file} ...\n')
         model.eval() # puts model into inference mode
         predictor = Predictor(model)
         wsi_preds = predictor.predict(data_loader)
@@ -101,6 +105,24 @@ if __name__=='__main__':
         t_purity = round(n_tumor/(n_tumor+n_normal),4)
         preds_dict[i] = [wsi_file, n_tumor, n_normal, t_purity]
 
+        #print(f'\nwsi_preds: \n{wsi_preds}')
+        #print(f'\ntile_file_list: \n{tile_file_list}')
+        #print(f'\npred_label_list: \n{pred_label_list}')
+
+        # save CSV with tumor tile coordinates for heatmap
+        pattern = r".+_loc_(\d+)-(\d+)"
+        coords = [m for x in tile_file_list for m in re.search(pattern, x).groups()]
+        coords_np = np.asarray(coords).reshape(len(tile_file_list),2)
+        coords_df = pd.DataFrame(coords_np, columns = ['x','y'])
+        coords_df['labels'] = wsi_preds
+        wsi_name = os.path.basename(wsi_file).split('.')[0]
+        outfile_name = "./output/coords_list_" + wsi_name + ".csv"
+        coords_df.to_csv(outfile_name, index=False)
+
+        # save file with annotations
+        overlay_file = "./output/overlay_" + wsi_name + '.png'
+        save_heatmap(wsi_file, outfile_name, overlay_file)
+
     # save prediction info to csv
     preds_df = pd.DataFrame.from_dict(
         preds_dict, 
@@ -110,7 +132,6 @@ if __name__=='__main__':
     preds_df.to_csv(predict_csv, index=False)
 
     # perform rank correlation using WSI stage vs. WSI tumor purity
-    #rank_df = pd.concat([meta_df, preds_df], ignore_index=True, sort=False)
     rank_df = pd.DataFrame().assign(
         t_purity = preds_df['t_purity'], 
         stage = meta_df['stage'])

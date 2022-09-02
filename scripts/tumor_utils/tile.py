@@ -31,12 +31,12 @@ class Tile (WSI):
     def __init__(
         self, wsi_obj:WSI, id_coord:list, size:int, level:int=0, label:str=""): 
         self.wsi_obj = wsi_obj
-        self.id_coord = np.array(id_coord)
-        self.points = self.get_corners()
-        self.centroid = self.get_centroid()
         self.size = size
         self.level = level
         self.label = label
+        self.id_coord = np.array(id_coord)
+        self.points = self.get_corners()
+        self.centroid = self.get_centroid()
         self.np_img = self.get_np_img()
         self.blank = self.is_blank_tile()
         if wsi_obj.roi_file != "":
