@@ -42,27 +42,27 @@ def count_preds(pred_labels:list)->tuple:
 
 if __name__=='__main__':
 
-    wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga"
+    wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga-dlbc"
     wsi_ext=".svs" # TCGA files will be ".svs"
     #wsi_dir="/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi"
     #wsi_ext=".tif" 
 
-    meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga/tcga_meta.txt"
+    meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga-dlbc/meta_TCGA-DLBC.txt"
     #meta_file="/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi/meta_prod.txt"
     
-    tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/tcga"
+    tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/tcga-dlbc"
     #tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/prod"
 
     model_file="/projects/bgmp/acrabtre/tumor-finder/output/WSI_VGG_Adam/running_model.pt"
     tiling=True
     
     # Output files:
-    predict_csv="./output/pred_stats_short.csv"
-    tumor_coords="./output/tumor_coords.csv"
+    predict_csv="./output/tcga-dlbc/pred_stats_short.csv"
+    tumor_coords="./output/tcga-dlbc/tumor_coords.csv"
 
     # import metadata as pandas df and save file list
     meta_df = pd.read_csv(meta_file, sep='\t')
-    meta_df['pathname'] = wsi_dir + "/" + meta_df['slide_id'] + wsi_ext
+    meta_df['pathname'] = wsi_dir + "/" + meta_df['filename']
     wsi_file_list = [x for x in meta_df['pathname']]
     wsi_stage_list = [x for x in meta_df['stage']]
 
@@ -105,10 +105,6 @@ if __name__=='__main__':
         t_purity = round(n_tumor/(n_tumor+n_normal),4)
         preds_dict[i] = [wsi_file, n_tumor, n_normal, t_purity]
 
-        #print(f'\nwsi_preds: \n{wsi_preds}')
-        #print(f'\ntile_file_list: \n{tile_file_list}')
-        #print(f'\npred_label_list: \n{pred_label_list}')
-
         # save CSV with tumor tile coordinates for heatmap
         pattern = r".+_loc_(\d+)-(\d+)"
         coords = [m for x in tile_file_list for m in re.search(pattern, x).groups()]
@@ -116,11 +112,11 @@ if __name__=='__main__':
         coords_df = pd.DataFrame(coords_np, columns = ['x','y'])
         coords_df['labels'] = wsi_preds
         wsi_name = os.path.basename(wsi_file).split('.')[0]
-        outfile_name = "./output/coords_list_" + wsi_name + ".csv"
+        outfile_name = "./output/tcga-dlbc/coords_list_" + wsi_name + ".csv"
         coords_df.to_csv(outfile_name, index=False)
 
         # save file with annotations
-        overlay_file = "./output/overlay_" + wsi_name + '.png'
+        overlay_file = "./output/tcga-dlbc/overlay_" + wsi_name + '.png'
         save_heatmap(wsi_file, outfile_name, overlay_file)
 
     # save prediction info to csv
