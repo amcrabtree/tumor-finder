@@ -171,10 +171,10 @@ def save_heatmap(wsi_file:str, coord_file:str, outfile:str=""):
     xi, yi = np.mgrid[0:final_w:nbins*1j, 0:final_h:nbins*1j]
     zi = k(np.vstack([xi.flatten(), yi.flatten()]))
     
-    # plot
+    # plot (for small image without overlay, alpha=0)
     fig=plt.figure()
     plt.imshow(shrunken_img)
-    plt.pcolormesh(xi, yi, zi.reshape(xi.shape), shading='auto', cmap=plt.cm.Blues, alpha=0)
+    plt.pcolormesh(xi, yi, zi.reshape(xi.shape), shading='auto', cmap=plt.cm.Reds, alpha=0.5)
 
     # show or save resulting image
     if outfile == "": # show image popup if no output file is specified
@@ -190,7 +190,7 @@ if __name__=='__main__':
 
     wsi_file = "/projects/bgmp/acrabtre/tumor-finder/data/wsi/prod_wsi/patient_092_node_1.tif"
     coord_file = "/projects/bgmp/acrabtre/tumor-finder/output/coords_list_patient_092_node_1.csv"
-    outfile = "./output/mini_WSI_patient_092_node_1.png"
+    outfile = "./output/mini_WSI_patient_092_node_1_test.png"
 
     #wsi_file = "/projects/bgmp/acrabtre/tumor-finder/data/wsi/tcga/TCGA-GI-A2C8-01Z-00-DX1.09BD8AC9-645A-4C8B-9B36-77D833BDBA09.svs"
     #coord_file = "/projects/bgmp/acrabtre/tumor-finder/output/coords_list_TCGA-GI-A2C8-01Z-00-DX1.csv"
