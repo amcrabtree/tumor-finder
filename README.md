@@ -1,7 +1,14 @@
 # tumor-finder
-A framework for training ML models for tumor recognition on H&amp;E WSIs
+A framework for training ML models for metastatic tumor recognition on H&amp;E WSIs
 
 ![](./img/tiles.png)
+
+### System Requirements
+
+Linux OS
+NVIDIA GPU (>=16GB memory) with CUDA
+Python 3
+conda
 
 ### Download repo
 
@@ -9,16 +16,27 @@ To clone this repo and start this project, run the following:
 
 ```
 git clone https://github.com/amcrabtree/tumor-finder.git
+cd tumor-finder
 ```
+
+### Create conda environment
+
+To replicate the environment in Linux, run the following:
+
+```
+conda env create -f ./env/environment.yml
+conda activate tumor_env # or `source activate tumor_env`
+```
+
+\* Note that this environment may be lacking a couple libraries at the moment. 
 
 ### Download Data
 
-This script can either use Patch Camelyon whole slide images (WSIs) or your own annotated WSIs from H&E stained slides. If you annotate your own slides, do it on QuPath and export the geojson file with all the options selected. This script accepts XML annotations (used for PCam dataset) or the QuPath .geojson formatted annotations. These are ROI-type annotations, not point annotations (as would be used in per-cell phenotyping). 
+This script can either use CAMELYON17 whole slide images (WSIs) or your own annotated WSIs from H&E stained slides. If you annotate your own slides, do it on QuPath and export the geojson file with all the options selected. This script accepts XML annotations (used for PCam dataset) or the QuPath .geojson formatted annotations. These are ROI-type annotations, not point annotations (as would be used in per-cell phenotyping). 
 
 To download a sample of 28 tumor-containing WSIs from the PCam dataset, run the following. Note that downloading may take approximately 24 hours. 
 
 ```
-cd tumor-finder
 sh ./scripts/pcam_download.sh
 ```
 
@@ -27,7 +45,7 @@ sh ./scripts/pcam_download.sh
 In order to perform the training, the model needs image tiles (sub-images). To tile the WSIs, run the following:
 
 ```
-python3 ./scripts/preprocess.py ./config/template_config.json
+python ./scripts/preprocess.py ./config/template_config.json
 ```
 
 ![](./img/tile_distr.png)
@@ -39,7 +57,7 @@ By default, VGG-16 with model weights is used. It is easy to swap out in the scr
 To change the run parameters including number of epochs and batch size, etc. you can create a new config file or edit the existing one found in `./config/template_config.json`. 
 
 ```
-python3 ./scripts/training.py ./config/template_config.json
+python ./scripts/training.py ./config/template_config.json
 ```
 
 ### Test the trained model
@@ -47,7 +65,7 @@ python3 ./scripts/training.py ./config/template_config.json
 To test the model, run the following to produce a test_stats.csv file in the project output folder. 
 
 ```
-python3 ./scripts/test_metrics.py ./config/template_config.json
+python ./scripts/test_metrics.py ./config/template_config.json
 ```
 
 ### FAQ
@@ -65,6 +83,8 @@ Proceed to train your model.
 ## TODOs
 
 - [ ] Debug model testing scripts 
+- [ ] Verify original model training scripts run with updated WSI and Tile classes
+- [ ] Build and export updated Linux Conda environment yml
 - [x] Add more config options
 - [x] Add option to use pre-tiled PCam data
 
