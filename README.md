@@ -85,6 +85,7 @@ Proceed to train your model.
 - [ ] Debug model testing scripts 
 - [ ] Verify original model training scripts run with updated WSI and Tile classes
 - [ ] Build and export updated Linux Conda environment yml
+- [ ] Incorperate config file into production script and remove hardcoding
 - [x] Add more config options
 - [x] Add option to use pre-tiled PCam data
 
