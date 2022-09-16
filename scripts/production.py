@@ -54,7 +54,7 @@ if __name__=='__main__':
     #tile_dir="/projects/bgmp/acrabtre/tumor-finder/data/tiles/prod"
 
     model_file="/projects/bgmp/acrabtre/tumor-finder/output/WSI_VGG_Adam/running_model.pt"
-    tiling=True
+    tiling=False
     
     # Output files:
     predict_csv="./output/tcga-dlbc/pred_stats_short.csv"
@@ -100,7 +100,7 @@ if __name__=='__main__':
         wsi_preds = predictor.predict(data_loader)
         pred_label_list = interpret_preds(wsi_preds)
         wsi_pred_dict = count_preds(pred_label_list)
-        n_tumor = wsi_pred_dict['tumor']
+        n_tumor = wsi_pred_dict['tumor'] if 'tumor' in wsi_pred_dict else 0 
         n_normal = wsi_pred_dict['normal']
         t_purity = round(n_tumor/(n_tumor+n_normal),4)
         preds_dict[i] = [wsi_file, n_tumor, n_normal, t_purity]
@@ -117,15 +117,15 @@ if __name__=='__main__':
 
         # save file with annotations
         overlay_file = "./output/tcga-dlbc/overlay_" + wsi_name + '.png'
-        save_heatmap(wsi_file, outfile_name, overlay_file)
+        #save_heatmap(wsi_file, outfile_name, overlay_file)
 
-    # save prediction info to csv
-    preds_df = pd.DataFrame.from_dict(
-        preds_dict, 
-        orient='index',
-        columns=['wsi_file','n_tumor','n_normal','t_purity'])
-    print("preds_df:\n", preds_df)
-    preds_df.to_csv(predict_csv, index=False)
+        # save prediction info to csv
+        preds_df = pd.DataFrame.from_dict(
+            preds_dict, 
+            orient='index',
+            columns=['wsi_file','n_tumor','n_normal','t_purity'])
+        print("preds_df:\n", preds_df)
+        preds_df.to_csv(predict_csv, index=False)
 
     # perform rank correlation using WSI stage vs. WSI tumor purity
     rank_df = pd.DataFrame().assign(
