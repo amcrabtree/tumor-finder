@@ -1,44 +1,45 @@
-name: bio-env
+name: tumor_env
 channels:
   - defaults
+  - pytorch
 dependencies:
-  - biopython=1.78=py39h9ed2024_0
-  - blas=1.0=openblas
-  - blosc=1.21.0=h8346a28_1
-  - bzip2=1.0.8=h1de35cc_0
-  - ca-certificates=2022.4.26=hecd8cb5_0
-  - certifi=2022.6.15=py39hecd8cb5_0
-  - hdf5=1.12.0=h964e04d_0
-  - intel-openmp=2021.4.0=hecd8cb5_3538
-  - libcxx=12.0.0=h2f01273_0
-  - libffi=3.3=hb1e8313_2
-  - libgfortran=3.0.1=h93005f0_2
-  - libopenblas=0.3.20=h9a5756b_0
-  - lz4-c=1.9.3=h23ab428_1
-  - lzo=2.10=haf1e3a3_2
-  - mkl=2021.4.0=hecd8cb5_637
-  - mkl-service=2.4.0=py39h9ed2024_0
-  - mock=4.0.3=pyhd3eb1b0_0
-  - ncurses=6.3=hca72f7f_2
-  - nomkl=3.0=0
-  - numexpr=2.8.3=py39h0f1bd0b_0
-  - numpy=1.22.3=py39h9c3cb84_0
-  - numpy-base=1.22.3=py39he782bc1_0
-  - openssl=1.1.1q=hca72f7f_0
-  - packaging=21.3=pyhd3eb1b0_0
-  - pip=21.2.4=py39hecd8cb5_0
-  - pytables=3.7.0=py39h007d91f_0
-  - python=3.9.12=hdfd78df_1
-  - readline=8.1.2=hca72f7f_1
-  - setuptools=61.2.0=py39hecd8cb5_0
-  - six=1.16.0=pyhd3eb1b0_1
-  - sqlite=3.38.3=h707629a_0
-  - tk=8.6.11=h3fd3227_1
-  - tzdata=2022a=hda174b7_0
-  - wheel=0.37.1=pyhd3eb1b0_0
-  - xz=5.2.5=hca72f7f_1
-  - zlib=1.2.12=h4dc903c_2
-  - zstd=1.5.2=hcb37349_0
+  - biopython
+  - blas
+  - blosc
+  - bzip2
+  - ca-certificates
+  - certifi
+  - hdf5
+  - intel-openmp
+  - libcxx
+  - libffi
+  - libgfortran
+  - libopenblas
+  - lz4-c
+  - lzo
+  - mkl
+  - mkl-service
+  - mock
+  - ncurses
+  - nomkl
+  - numexpr
+  - numpy
+  - numpy-base
+  - openssl
+  - packaging
+  - pip
+  - pytables
+  - python=3.9.12
+  - readline
+  - setuptools
+  - six
+  - sqlite
+  - tk
+  - tzdata
+  - wheel
+  - xz
+  - zlib
+  - zstd
   - pip:
     - absl-py==1.1.0
     - aiohttp==3.8.1
